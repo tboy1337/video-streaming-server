@@ -15,16 +15,12 @@ A simple web-based video streaming server that allows you to share your video li
 
 ## Installation
 
-1. Install Python:
-   - Download Python from [python.org](https://python.org)
-   - During installation, make sure to check "Add Python to PATH"
-
-2. Install required Python packages:
+1. Install required Python packages:
 ```bash
-pip install flask waitress
+py -m pip install -U -r requirements.txt
 ```
 
-3. Download the video server script (`streaming_server.py`) and save it to a location of your choice.
+2. Download the video server script (`streaming_server.py`) and save it to a location of your choice.
 
 ## Configuration
 
