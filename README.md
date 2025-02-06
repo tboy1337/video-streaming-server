@@ -27,7 +27,7 @@ py -m pip install -U -r requirements.txt
 1. Generate a password hash:
    - Open Command Prompt
    - Run:
-```python
+```bash
 python generate_password.py
 ```
 
