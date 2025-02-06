@@ -26,12 +26,10 @@ py -m pip install -U -r requirements.txt
 
 1. Generate a password hash:
    - Open Command Prompt
-   - Run Python:
+   - Run:
 ```python
-from werkzeug.security import generate_password_hash
-print(generate_password_hash('your-chosen-password'))
+python generate_password.py
 ```
-   Replace 'your-chosen-password' with the password you want to use.
 
 2. Edit the video server script:
    - Open `streaming_server.py` in a text editor
