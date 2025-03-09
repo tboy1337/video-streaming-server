@@ -28,7 +28,7 @@ py -m pip install -U -r requirements.txt
    - Open Command Prompt
    - Run:
 ```bash
-python generate_password.py
+py generate_password.py
 ```
 
 2. Edit the video server script:
@@ -74,7 +74,7 @@ PASSWORD_HASH = 'your-generated-hash-goes-here'  # Paste your generated hash her
    - Navigate to the folder containing `streaming_server.py`
    - Run:
 ```bash
-python streaming_server.py
+py streaming_server.py
 ```
    - You should see "Server running on http://0.0.0.0:5000"
 
