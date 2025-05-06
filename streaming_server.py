@@ -39,7 +39,7 @@ VIDEO_DIRECTORY = r'E:\Video'  # Windows path to video directory
 USERNAME = 'friend'  # Change this to desired username
 # Replace this hash with your generated one
 PASSWORD_HASH = 'your-generated-hash-goes-here'
-ALLOWED_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v'}
+ALLOWED_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.flv', '.srt'}
 SESSION_TIMEOUT = 3600  # Session timeout in seconds (1 hour)
 
 # Setup logging
