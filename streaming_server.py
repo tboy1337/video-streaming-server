@@ -32,7 +32,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)  # Generate a secure secret key
+app.secret_key = secrets.token_hex(35)  # Generate a secure secret key
 
 # Configuration
 VIDEO_DIRECTORY = r'E:\Video'  # Windows path to video directory
