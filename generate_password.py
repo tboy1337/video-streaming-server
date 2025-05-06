@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash
 import secrets
 import string
 
-def generate_strong_password(length=16):
+def generate_strong_password(length=35):
     """Generate a strong random password of specified length"""
     alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
