@@ -4,7 +4,7 @@ A simple web-based video streaming server that allows you to share your video li
 - Password protection with secure session management
 - Directory browsing with breadcrumb navigation
 - Video streaming with controls
-- Support for MP4, MKV, AVI, MOV, WebM, and M4V files
+- Support for MP4, MKV, AVI, MOV, WebM, M4V, FLV files and SRT subtitles
 - Mobile-friendly interface
 - Enhanced security against common web attacks
 
@@ -110,6 +110,8 @@ The server supports the following video formats:
 - MOV (.mov)
 - WebM (.webm)
 - M4V (.m4v)
+- FLV (.flv)
+- SRT (.srt) subtitle files
 
 To add support for additional formats, update the `ALLOWED_EXTENSIONS` set in the configuration.
 
@@ -162,7 +164,7 @@ serve(app, host='0.0.0.0', port=5000, threads=12)
 
 4. **Change the video file extensions**:
 ```python
-ALLOWED_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v'}
+ALLOWED_EXTENSIONS = {'.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.flv', '.srt'}
 ```
 
 ## Stopping the Server
