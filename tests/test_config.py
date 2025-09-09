@@ -12,12 +12,8 @@ from unittest.mock import patch
 
 import pytest
 
-from config import (
-    ServerConfig,
-    _get_default_video_directory,
-    create_sample_env_file,
-    load_config,
-)
+from config import (ServerConfig, _get_default_video_directory,
+                    create_sample_env_file, load_config)
 
 
 class TestDefaultVideoDirectoryFunction:

@@ -64,7 +64,8 @@ def test_logging():
 
     try:
         from config import ServerConfig
-        from logging_config import PerformanceLogger, SecurityEventLogger, setup_logging
+        from logging_config import (PerformanceLogger, SecurityEventLogger,
+                                    setup_logging)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             os.environ["VIDEO_SERVER_PASSWORD_HASH"] = "pbkdf2:sha256:260000$test$hash"
