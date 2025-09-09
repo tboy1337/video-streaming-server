@@ -1,0 +1,29 @@
+# Video Streaming Server - Development Dependencies
+# Development, testing, and code quality tools
+
+# Include production dependencies
+-r requirements.txt
+
+# Core Testing Framework
+pytest
+pytest-asyncio
+pytest-timeout
+pytest-xdist
+pytest-mock
+
+# Test Coverage and Reporting
+pytest-cov
+pytest-html
+pytest-json-report
+
+# Framework-Specific Testing
+pytest-flask
+pytest-httpx
+
+# Code Quality and Linting
+pylint
+black
+isort
+
+# Additional Development Tools
+# mypy  # Uncomment if you want static type checking
