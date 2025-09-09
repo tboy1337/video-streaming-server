@@ -134,20 +134,6 @@ VIDEO_SERVER_LOG_DIR=./logs
 - **`logging_config.py`** - Advanced logging with security and performance tracking
 - **`generate_password.py`** - Secure password hash generation
 
-### Enhanced Features vs Basic Version
-
-| Feature | Basic | Enhanced |
-|---------|--------|----------|
-| Authentication | ✅ Basic | ✅ Multi-layer with sessions |
-| Configuration | ⚠️ Hard-coded | ✅ Environment variables |
-| Logging | ⚠️ Basic | ✅ Structured + Security + Performance |
-| Testing | ❌ None | ✅ 100% coverage with security tests |
-| API | ❌ None | ✅ RESTful JSON API |
-| Monitoring | ❌ None | ✅ Health checks + metrics |
-| Security | ⚠️ Basic | ✅ Enterprise-grade |
-| Type Safety | ❌ None | ✅ Full type hints |
-| Code Quality | ⚠️ Basic | ✅ Linting + formatting |
-
 ## 🧪 Testing
 
 Run the comprehensive test suite:
