@@ -76,11 +76,37 @@ cp .env.example .env
 
 ### 3. Security Setup
 
+Generate required security credentials:
+
 ```bash
-# Generate secure password hash
+# Generate Flask secret key and password hash
 python generate_password.py
-# Follow prompts and update .env with the hash
 ```
+
+The script will:
+1. **Ask for your preferred username** (e.g., `admin`, `user`, etc.)
+2. **Generate or create your password**:
+   - Choose 'y' to generate a secure 35-character password automatically
+   - Choose 'n' to enter your own password (minimum 8 characters)
+3. **Generate a Flask secret key** (for session security)
+4. **Create a password hash** (for secure authentication)
+
+**Example output:**
+```
+============================================================
+CONFIGURATION VALUES FOR .env FILE
+============================================================
+VIDEO_SERVER_SECRET_KEY=a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890
+VIDEO_SERVER_USERNAME=admin
+VIDEO_SERVER_PASSWORD_HASH=pbkdf2:sha256:600000$abc123$def456...
+```
+
+**Important Security Notes**: 
+- **Save your password securely** - you'll need it to log in to the web interface
+- **Copy all three generated values** to your `.env` file immediately
+- **Never share your secret key or password hash** - treat them like private keys
+- **Regenerate credentials** if you suspect they've been compromised
+- The script uses **cryptographically secure random generation** suitable for production
 
 ### 4. Start the Server
 
@@ -101,7 +127,26 @@ python streaming_server.py --host 0.0.0.0 --port 8080
 
 ### 🔧 Configuration
 
-Key environment variables:
+#### Step-by-Step Configuration Process
+
+1. **Create your configuration file**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Generate security credentials**:
+   ```bash
+   python generate_password.py
+   ```
+
+3. **Update your `.env` file** with the generated values:
+   - Replace `VIDEO_SERVER_SECRET_KEY=your-secret-key-here` with your generated secret key
+   - Replace `VIDEO_SERVER_USERNAME=tboy1337` with your chosen username  
+   - Replace `VIDEO_SERVER_PASSWORD_HASH=your-password-hash-here` with your generated hash
+
+4. **Configure other settings** as needed (video directory, port, etc.)
+
+#### Key Environment Variables
 
 ```bash
 # Server Configuration
@@ -110,10 +155,10 @@ VIDEO_SERVER_PORT=5000
 VIDEO_SERVER_DIRECTORY=/path/to/videos
 VIDEO_SERVER_THREADS=6
 
-# Security (Required)
-VIDEO_SERVER_USERNAME=your_username
-VIDEO_SERVER_PASSWORD_HASH=your_secure_hash
-VIDEO_SERVER_SECRET_KEY=your_secret_key
+# Security (Required - Generate using python generate_password.py)
+VIDEO_SERVER_USERNAME=your_username                    # Your chosen username
+VIDEO_SERVER_PASSWORD_HASH=your_secure_hash            # Generated password hash
+VIDEO_SERVER_SECRET_KEY=your_secret_key                # Generated Flask secret key
 
 # Performance
 VIDEO_SERVER_RATE_LIMIT_PER_MIN=60
@@ -132,7 +177,7 @@ VIDEO_SERVER_LOG_DIR=./logs
 - **`streaming_server.py`** - Main application with Flask server
 - **`config.py`** - Configuration management with environment variables  
 - **`logging_config.py`** - Advanced logging with security and performance tracking
-- **`generate_password.py`** - Secure password hash generation
+- **`generate_password.py`** - Security credential generator (Flask secret key + password hash)
 
 ## 🧪 Testing
 
@@ -340,9 +385,13 @@ mypy streaming_server.py
 ### Common Issues
 
 **Server won't start**: Check logs in `logs/error.log`
-**Authentication issues**: Verify password hash configuration  
-**Performance problems**: Increase thread count
+**Authentication issues**: 
+  - Verify your `.env` file has all three security values from `generate_password.py`
+  - Ensure you're using the correct username and password you generated
+  - Regenerate credentials if needed: `python generate_password.py`
+**Performance problems**: Increase thread count (`VIDEO_SERVER_THREADS`)
 **Network access**: Check firewall and port forwarding
+**Missing .env file**: Copy `.env.example` to `.env` and configure
 
 ### Debug Mode
 
