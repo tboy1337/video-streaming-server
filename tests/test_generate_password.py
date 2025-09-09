@@ -14,6 +14,34 @@ from werkzeug.security import generate_password_hash
 import generate_password
 
 
+class TestSecretKeyGeneration:
+    """Test cases for Flask secret key generation"""
+
+    def test_generate_flask_secret_key_default_length(self):
+        """Test Flask secret key generation with default length"""
+        secret_key = generate_password.generate_flask_secret_key()
+
+        # Default length is 32, which produces 64 hex characters
+        assert len(secret_key) == 64
+        # Should be valid hex
+        assert all(c in "0123456789abcdef" for c in secret_key)
+
+    def test_generate_flask_secret_key_custom_length(self):
+        """Test Flask secret key generation with custom length"""
+        secret_key = generate_password.generate_flask_secret_key(16)
+
+        # Length of 16 should produce 32 hex characters
+        assert len(secret_key) == 32
+        assert all(c in "0123456789abcdef" for c in secret_key)
+
+    def test_generate_flask_secret_key_uniqueness(self):
+        """Test that generated secret keys are unique"""
+        key1 = generate_password.generate_flask_secret_key()
+        key2 = generate_password.generate_flask_secret_key()
+
+        assert key1 != key2
+
+
 class TestPasswordGeneration:
     """Test cases for password generation"""
 
@@ -137,23 +165,39 @@ class TestMainFunction:
     @patch("builtins.print")
     def test_main_with_generated_password(self, mock_print, mock_input):
         """Test main function with generated password option"""
-        mock_input.side_effect = ["y"]  # Choose generated password
+        mock_input.side_effect = [
+            "testuser",
+            "y",
+        ]  # Username, choose generated password
 
         with patch("generate_password.generate_strong_password") as mock_gen:
             mock_gen.return_value = "TestPass123!"
             with patch("generate_password.generate_password_hash") as mock_hash:
                 mock_hash.return_value = "hashed_password"
+                with patch(
+                    "generate_password.generate_flask_secret_key"
+                ) as mock_secret:
+                    mock_secret.return_value = "test_secret_key"
 
-                generate_password.main()
+                    generate_password.main()
 
-                # Verify generate_password_hash was called
-                mock_hash.assert_called_once_with("TestPass123!")
+                    # Verify generate_password_hash was called
+                    mock_hash.assert_called_once_with("TestPass123!")
+                    # Verify generate_flask_secret_key was called
+                    mock_secret.assert_called_once()
 
-                # Verify appropriate print calls were made
-                mock_print.assert_any_call("\nGenerated password: TestPass123!")
-                mock_print.assert_any_call(
-                    "IMPORTANT: Save this password in a secure location!"
-                )
+                    # Verify appropriate print calls were made
+                    mock_print.assert_any_call("\nGenerated password: TestPass123!")
+                    mock_print.assert_any_call(
+                        "IMPORTANT: Save this password in a secure location!"
+                    )
+                    mock_print.assert_any_call(
+                        "VIDEO_SERVER_SECRET_KEY=test_secret_key"
+                    )
+                    mock_print.assert_any_call("VIDEO_SERVER_USERNAME=testuser")
+                    mock_print.assert_any_call(
+                        "VIDEO_SERVER_PASSWORD_HASH=hashed_password"
+                    )
 
     @patch("builtins.input")
     @patch("builtins.print")
@@ -162,24 +206,58 @@ class TestMainFunction:
     ):  # pylint: disable=unused-argument
         """Test main function with custom password that's valid on first try"""
         mock_input.side_effect = [
+            "customuser",
             "n",
             "MyPassword123!",
             "MyPassword123!",
-        ]  # No generated, password, confirm
+        ]  # Username, no generated, password, confirm
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            # Verify generate_password_hash was called with custom password
-            mock_hash.assert_called_once_with("MyPassword123!")
+                # Verify generate_password_hash was called with custom password
+                mock_hash.assert_called_once_with("MyPassword123!")
+                mock_secret.assert_called_once()
+
+                # Verify username is printed in config
+                mock_print.assert_any_call("VIDEO_SERVER_USERNAME=customuser")
+
+    @patch("builtins.input")
+    @patch("builtins.print")
+    def test_main_with_empty_username(self, mock_print, mock_input):
+        """Test main function handles empty username input"""
+        mock_input.side_effect = [
+            "",  # Empty username first try
+            "validuser",  # Valid username second try
+            "y",  # Generate password
+        ]
+
+        with patch("generate_password.generate_strong_password") as mock_gen:
+            mock_gen.return_value = "TestPass123!"
+            with patch("generate_password.generate_password_hash") as mock_hash:
+                mock_hash.return_value = "hashed_password"
+                with patch(
+                    "generate_password.generate_flask_secret_key"
+                ) as mock_secret:
+                    mock_secret.return_value = "test_secret_key"
+
+                    generate_password.main()
+
+                    # Verify error message was printed
+                    mock_print.assert_any_call("Username cannot be empty!")
+                    # Verify valid username is used
+                    mock_print.assert_any_call("VIDEO_SERVER_USERNAME=validuser")
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_with_custom_password_too_short(self, mock_print, mock_input):
         """Test main function with custom password that's too short"""
         mock_input.side_effect = [
+            "testuser",  # Username
             "n",  # No generated password
             "short",  # Too short password
             "ValidPass123!",  # Valid password
@@ -188,20 +266,24 @@ class TestMainFunction:
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            # Verify error message was printed
-            mock_print.assert_any_call(
-                "Password is too short! Use at least 8 characters."
-            )
-            mock_hash.assert_called_once_with("ValidPass123!")
+                # Verify error message was printed
+                mock_print.assert_any_call(
+                    "Password is too short! Use at least 8 characters."
+                )
+                mock_hash.assert_called_once_with("ValidPass123!")
+                mock_secret.assert_called_once()
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_with_password_mismatch(self, mock_print, mock_input):
         """Test main function with password confirmation mismatch"""
         mock_input.side_effect = [
+            "testuser",  # Username
             "n",  # No generated password
             "MyPassword123!",  # Valid password
             "DifferentPass",  # Mismatched confirmation
@@ -211,87 +293,107 @@ class TestMainFunction:
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            # Verify error message was printed
-            mock_print.assert_any_call("Passwords don't match! Try again.")
-            mock_hash.assert_called_once_with("MyPassword123!")
+                # Verify error message was printed
+                mock_print.assert_any_call("Passwords don't match! Try again.")
+                mock_hash.assert_called_once_with("MyPassword123!")
+                mock_secret.assert_called_once()
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_prints_final_instructions(self, mock_print, mock_input):
         """Test that main function prints final instructions"""
-        mock_input.side_effect = ["y"]  # Choose generated password
+        mock_input.side_effect = [
+            "testuser",
+            "y",
+        ]  # Username, choose generated password
 
         with patch("generate_password.generate_strong_password"):
             with patch("generate_password.generate_password_hash") as mock_hash:
                 mock_hash.return_value = "test_hash_value"
+                with patch(
+                    "generate_password.generate_flask_secret_key"
+                ) as mock_secret:
+                    mock_secret.return_value = "test_secret_key"
 
-                generate_password.main()
+                    generate_password.main()
 
-                # Check that important instructions are printed
-                expected_calls = [
-                    "Video Streaming Server - Password Setup",
-                    "\nInstructions:",
-                    "1. Copy the password hash above",
-                    "2. Open streaming_server.py",
-                    "3. Replace 'your-generated-hash-goes-here' with the copied hash",
-                    "4. Save the file and run with: python streaming_server.py",
-                    "\nYou'll use the username 'friend' and your chosen password to log in",
-                ]
+                    # Check that important instructions are printed
+                    expected_calls = [
+                        "Video Streaming Server - Configuration Setup",
+                        "1. Copy the .env.example file to .env",
+                        "2. Replace the following values in your .env file:",
+                        "3. Configure other settings in .env as needed (directories, ports, etc.)",
+                        "4. Save the .env file and run: python streaming_server.py",
+                        "\nYou'll use the username 'testuser' and your chosen password to log in",
+                    ]
 
-                for expected_call in expected_calls:
-                    mock_print.assert_any_call(expected_call)
+                    for expected_call in expected_calls:
+                        mock_print.assert_any_call(expected_call)
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_generate_password_flow(self, mock_print, mock_input):
         """Test main function with generated password"""
-        mock_input.return_value = "y"
+        mock_input.side_effect = ["testuser", "y"]
 
         with patch("generate_password.generate_strong_password") as mock_gen:
             mock_gen.return_value = "TestPass123!"
             with patch("generate_password.generate_password_hash") as mock_hash:
                 mock_hash.return_value = "hashed_password"
+                with patch(
+                    "generate_password.generate_flask_secret_key"
+                ) as mock_secret:
+                    mock_secret.return_value = "test_secret_key"
 
-                generate_password.main()
+                    generate_password.main()
 
-                mock_gen.assert_called_once()
-                mock_hash.assert_called_once_with("TestPass123!")
+                    mock_gen.assert_called_once()
+                    mock_hash.assert_called_once_with("TestPass123!")
+                    mock_secret.assert_called_once()
 
-                # Verify key output messages
-                mock_print.assert_any_call("Video Streaming Server - Password Setup")
-                mock_print.assert_any_call("\nGenerated password: TestPass123!")
-                mock_print.assert_any_call(
-                    "IMPORTANT: Save this password in a secure location!"
-                )
+                    # Verify key output messages
+                    mock_print.assert_any_call(
+                        "Video Streaming Server - Configuration Setup"
+                    )
+                    mock_print.assert_any_call("\nGenerated password: TestPass123!")
+                    mock_print.assert_any_call(
+                        "IMPORTANT: Save this password in a secure location!"
+                    )
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_custom_password_flow(self, mock_print, mock_input):
         """Test main function with custom password"""
-        mock_input.side_effect = ["n", "MyPassword123!", "MyPassword123!"]
+        mock_input.side_effect = ["testuser", "n", "MyPassword123!", "MyPassword123!"]
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            mock_hash.assert_called_once_with("MyPassword123!")
+                mock_hash.assert_called_once_with("MyPassword123!")
+                mock_secret.assert_called_once()
 
-            # Verify key output messages
-            mock_print.assert_any_call("Video Streaming Server - Password Setup")
-            mock_print.assert_any_call(
-                "\nPassword Hash (copy this to your streaming_server.py file):"
-            )
-            mock_print.assert_any_call("hashed_password")
+                # Verify key output messages
+                mock_print.assert_any_call(
+                    "Video Streaming Server - Configuration Setup"
+                )
+                mock_print.assert_any_call("VIDEO_SERVER_PASSWORD_HASH=hashed_password")
+                mock_print.assert_any_call("VIDEO_SERVER_USERNAME=testuser")
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_password_too_short_retry(self, mock_print, mock_input):
         """Test main function with password that's too short"""
         mock_input.side_effect = [
+            "testuser",  # Username
             "n",  # Don't generate
             "short",  # Too short password
             "ValidPassword123!",  # Valid password
@@ -300,19 +402,23 @@ class TestMainFunction:
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            mock_print.assert_any_call(
-                "Password is too short! Use at least 8 characters."
-            )
-            mock_hash.assert_called_once_with("ValidPassword123!")
+                mock_print.assert_any_call(
+                    "Password is too short! Use at least 8 characters."
+                )
+                mock_hash.assert_called_once_with("ValidPassword123!")
+                mock_secret.assert_called_once()
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_password_mismatch_retry(self, mock_print, mock_input):
         """Test main function with password confirmation mismatch"""
         mock_input.side_effect = [
+            "testuser",  # Username
             "n",  # Don't generate
             "MyPassword123!",  # Valid password
             "DifferentPassword",  # Mismatched confirmation
@@ -322,47 +428,54 @@ class TestMainFunction:
 
         with patch("generate_password.generate_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
+            with patch("generate_password.generate_flask_secret_key") as mock_secret:
+                mock_secret.return_value = "test_secret_key"
 
-            generate_password.main()
+                generate_password.main()
 
-            mock_print.assert_any_call("Passwords don't match! Try again.")
-            mock_hash.assert_called_once_with("MyPassword123!")
+                mock_print.assert_any_call("Passwords don't match! Try again.")
+                mock_hash.assert_called_once_with("MyPassword123!")
+                mock_secret.assert_called_once()
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_instructions_printed(self, mock_print, mock_input):
         """Test that main function prints all instructions"""
-        mock_input.return_value = "y"
+        mock_input.side_effect = ["testuser", "y"]
 
         with patch("generate_password.generate_strong_password"):
             with patch("generate_password.generate_password_hash") as mock_hash:
                 mock_hash.return_value = "test_hash_value"
+                with patch(
+                    "generate_password.generate_flask_secret_key"
+                ) as mock_secret:
+                    mock_secret.return_value = "test_secret_key"
 
-                generate_password.main()
+                    generate_password.main()
 
-                # Check all instruction messages are printed
-                expected_instructions = [
-                    "Video Streaming Server - Password Setup",
-                    "-" * 50,
-                    "\nInstructions:",
-                    "1. Copy the password hash above",
-                    "2. Open streaming_server.py",
-                    "3. Replace 'your-generated-hash-goes-here' with the copied hash",
-                    "4. Save the file and run with: python streaming_server.py",
-                    "\nYou'll use the username 'friend' and your chosen password to log in",
-                ]
+                    # Check all instruction messages are printed
+                    expected_instructions = [
+                        "Video Streaming Server - Configuration Setup",
+                        "-" * 55,
+                        "1. Copy the .env.example file to .env",
+                        "2. Replace the following values in your .env file:",
+                        "3. Configure other settings in .env as needed (directories, ports, etc.)",
+                        "4. Save the .env file and run: python streaming_server.py",
+                        "\nYou'll use the username 'testuser' and your chosen password to log in",
+                    ]
 
-                for instruction in expected_instructions:
-                    mock_print.assert_any_call(instruction)
+                    for instruction in expected_instructions:
+                        mock_print.assert_any_call(instruction)
 
     def test_main_function_entry_point(self):
         """Test the main function as entry point"""
-        with patch("builtins.input", side_effect=["y"]):
+        with patch("builtins.input", side_effect=["testuser", "y"]):
             with patch("builtins.print"):
                 with patch("generate_password.generate_strong_password"):
                     with patch("generate_password.generate_password_hash"):
-                        # This should not raise any exceptions
-                        generate_password.main()
+                        with patch("generate_password.generate_flask_secret_key"):
+                            # This should not raise any exceptions
+                            generate_password.main()
 
 
 class TestGeneratePasswordCompleteEdgeCases:
@@ -372,45 +485,79 @@ class TestGeneratePasswordCompleteEdgeCases:
         """Test main function with various comprehensive input scenarios"""
 
         # Test with automatic password generation (choose option y)
-        with patch("builtins.input", side_effect=["y"]):
+        with patch("builtins.input", side_effect=["testuser", "y"]):
             with patch("builtins.print") as mock_print:
                 with patch("generate_password.generate_strong_password") as mock_gen:
                     mock_gen.return_value = "TestPass123!"
                     with patch("generate_password.generate_password_hash") as mock_hash:
                         mock_hash.return_value = "hashed_password"
-                        generate_password.main()
-                        # Verify it printed the password and hash
-                        assert mock_print.call_count >= 4
+                        with patch(
+                            "generate_password.generate_flask_secret_key"
+                        ) as mock_secret:
+                            mock_secret.return_value = "test_secret_key"
+                            generate_password.main()
+                            # Verify it printed the password and hash
+                            assert mock_print.call_count >= 4
 
         # Test with custom password - valid case
         with patch(
             "builtins.input",
-            side_effect=["n", "MySecurePassword123!", "MySecurePassword123!"],
+            side_effect=[
+                "testuser",
+                "n",
+                "MySecurePassword123!",
+                "MySecurePassword123!",
+            ],
         ):
             with patch("builtins.print") as mock_print:
                 with patch("generate_password.generate_password_hash") as mock_hash:
                     mock_hash.return_value = "hashed_password"
-                    generate_password.main()
-                    assert mock_print.call_count >= 3
+                    with patch(
+                        "generate_password.generate_flask_secret_key"
+                    ) as mock_secret:
+                        mock_secret.return_value = "test_secret_key"
+                        generate_password.main()
+                        assert mock_print.call_count >= 3
 
         # Test with mismatched passwords
         with patch(
             "builtins.input",
-            side_effect=["n", "password1", "password2", "password3", "password3"],
+            side_effect=[
+                "testuser",
+                "n",
+                "password1",
+                "password2",
+                "password3",
+                "password3",
+            ],
         ):
             with patch("builtins.print") as mock_print:
                 with patch("generate_password.generate_password_hash") as mock_hash:
                     mock_hash.return_value = "hashed_password"
-                    generate_password.main()
-                    assert mock_print.call_count >= 4
+                    with patch(
+                        "generate_password.generate_flask_secret_key"
+                    ) as mock_secret:
+                        mock_secret.return_value = "test_secret_key"
+                        generate_password.main()
+                        assert mock_print.call_count >= 4
 
         # Test with password too short
         with patch(
             "builtins.input",
-            side_effect=["n", "short", "ValidPassword123!", "ValidPassword123!"],
+            side_effect=[
+                "testuser",
+                "n",
+                "short",
+                "ValidPassword123!",
+                "ValidPassword123!",
+            ],
         ):
             with patch("builtins.print") as mock_print:
                 with patch("generate_password.generate_password_hash") as mock_hash:
                     mock_hash.return_value = "hashed_password"
-                    generate_password.main()
-                    assert mock_print.call_count >= 4
+                    with patch(
+                        "generate_password.generate_flask_secret_key"
+                    ) as mock_secret:
+                        mock_secret.return_value = "test_secret_key"
+                        generate_password.main()
+                        assert mock_print.call_count >= 4
