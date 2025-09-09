@@ -1,4 +1,4 @@
-"""
+﻿"""
 Password Generation Utility
 ---------------------------
 Utility script for generating secure passwords and their corresponding

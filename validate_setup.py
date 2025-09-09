@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Setup Validation Script for Video Streaming Server
 -------------------------------------------------
@@ -23,9 +23,9 @@ def test_imports():
     for module in required_modules:
         try:
             __import__(module)
-            print(f"  ✅ {module}")
+            print(f"  âœ… {module}")
         except ImportError as e:
-            print(f"  ❌ {module}: {e}")
+            print(f"  âŒ {module}: {e}")
             return False
 
     return True
@@ -45,16 +45,16 @@ def test_configuration():
             os.environ["VIDEO_SERVER_LOG_DIR"] = temp_dir
 
             config = ServerConfig()
-            print("  ✅ Configuration validation")
+            print("  âœ… Configuration validation")
 
             # Test load_config function
             config = load_config()
-            print("  ✅ Configuration loading")
+            print("  âœ… Configuration loading")
 
             return True
 
     except Exception as e:
-        print(f"  ❌ Configuration error: {e}")
+        print(f"  âŒ Configuration error: {e}")
         return False
 
 
@@ -75,17 +75,17 @@ def test_logging():
 
             # Test logging setup
             components = setup_logging(config)
-            print("  ✅ Logging setup")
+            print("  âœ… Logging setup")
 
             # Test security logger
             security_logger = SecurityEventLogger(config)
             security_logger.log_auth_attempt("test", True, "127.0.0.1")
-            print("  ✅ Security logging")
+            print("  âœ… Security logging")
 
             # Test performance logger
             perf_logger = PerformanceLogger(config)
             perf_logger.log_request_duration("/test", 0.1, 200)
-            print("  ✅ Performance logging")
+            print("  âœ… Performance logging")
 
             # Clean up loggers to prevent file lock issues on Windows
             import logging
@@ -95,7 +95,7 @@ def test_logging():
             return True
 
     except Exception as e:
-        print(f"  ❌ Logging error: {e}")
+        print(f"  âŒ Logging error: {e}")
         traceback.print_exc()
         return False
 
@@ -120,16 +120,16 @@ def test_server_initialization():
 
         config = ServerConfig()
         server = VideoStreamingServer(config)
-        print("  ✅ Server initialization")
+        print("  âœ… Server initialization")
 
         # Test Flask app creation
         assert server.app is not None
-        print("  ✅ Flask app creation")
+        print("  âœ… Flask app creation")
 
         # Test loggers initialization
         assert server.security_logger is not None
         assert server.performance_logger is not None
-        print("  ✅ Logger initialization")
+        print("  âœ… Logger initialization")
 
         # Clean up loggers to prevent file lock issues on Windows
         import logging
@@ -139,7 +139,7 @@ def test_server_initialization():
         return True
 
     except Exception as e:
-        print(f"  ❌ Server initialization error: {e}")
+        print(f"  âŒ Server initialization error: {e}")
         traceback.print_exc()
         return False
 
@@ -170,18 +170,18 @@ def test_password_generation():
         # Test password generation function
         password = generate_password.generate_strong_password(20)
         assert len(password) == 20
-        print("  ✅ Password generation")
+        print("  âœ… Password generation")
 
         # Test password validation
         assert any(c.islower() for c in password)
         assert any(c.isupper() for c in password)
         assert sum(c.isdigit() for c in password) >= 3
-        print("  ✅ Password validation")
+        print("  âœ… Password validation")
 
         return True
 
     except Exception as e:
-        print(f"  ❌ Password generation error: {e}")
+        print(f"  âŒ Password generation error: {e}")
         return False
 
 
@@ -207,10 +207,10 @@ def test_dependencies():
     for package in required_packages:
         try:
             __import__(package)
-            print(f"  ✅ {package}")
+            print(f"  âœ… {package}")
         except ImportError:
             missing_packages.append(package)
-            print(f"  ❌ {package}")
+            print(f"  âŒ {package}")
 
     if missing_packages:
         print(f"\nMissing packages: {', '.join(missing_packages)}")
@@ -245,16 +245,16 @@ def test_file_structure():
     for file_path in required_files:
         if not Path(file_path).exists():
             missing_files.append(file_path)
-            print(f"  ❌ {file_path}")
+            print(f"  âŒ {file_path}")
         else:
-            print(f"  ✅ {file_path}")
+            print(f"  âœ… {file_path}")
 
     for dir_path in required_dirs:
         if not Path(dir_path).exists():
             missing_files.append(dir_path)
-            print(f"  ❌ {dir_path}/")
+            print(f"  âŒ {dir_path}/")
         else:
-            print(f"  ✅ {dir_path}/")
+            print(f"  âœ… {dir_path}/")
 
     if missing_files:
         print(f"\nMissing files/directories: {', '.join(missing_files)}")
@@ -265,7 +265,7 @@ def test_file_structure():
 
 def main():
     """Run all validation tests"""
-    print("🔍 Video Streaming Server - Production Readiness Validation")
+    print("ðŸ” Video Streaming Server - Production Readiness Validation")
     print("=" * 60)
 
     tests = [
@@ -282,32 +282,32 @@ def main():
     total = len(tests)
 
     for test_name, test_func in tests:
-        print(f"\n📋 {test_name}")
+        print(f"\nðŸ“‹ {test_name}")
         print("-" * 40)
 
         try:
             if test_func():
                 passed += 1
-                print(f"✅ {test_name} - PASSED")
+                print(f"âœ… {test_name} - PASSED")
             else:
-                print(f"❌ {test_name} - FAILED")
+                print(f"âŒ {test_name} - FAILED")
         except Exception as e:
-            print(f"❌ {test_name} - ERROR: {e}")
+            print(f"âŒ {test_name} - ERROR: {e}")
             traceback.print_exc()
 
     print("\n" + "=" * 60)
-    print(f"📊 VALIDATION SUMMARY: {passed}/{total} tests passed")
+    print(f"ðŸ“Š VALIDATION SUMMARY: {passed}/{total} tests passed")
 
     if passed == total:
-        print("🎉 ALL TESTS PASSED - Server is ready for production!")
-        print("\n🚀 Next steps:")
+        print("ðŸŽ‰ ALL TESTS PASSED - Server is ready for production!")
+        print("\nðŸš€ Next steps:")
         print("  1. Create your .env configuration file")
         print("  2. Generate password hash: python generate_password.py")
         print("  3. Configure your video directory path")
         print("  4. Start server: python streaming_server.py")
         return True
 
-    print(f"⚠️  {total - passed} test(s) failed - Address issues before deployment")
+    print(f"âš ï¸  {total - passed} test(s) failed - Address issues before deployment")
     return False
 
 
@@ -316,9 +316,9 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Validation interrupted by user")
+        print("\n\nâš ï¸ Validation interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n\n💥 Unexpected error during validation: {e}")
+        print(f"\n\nðŸ’¥ Unexpected error during validation: {e}")
         traceback.print_exc()
         sys.exit(1)

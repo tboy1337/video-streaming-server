@@ -1,4 +1,4 @@
-"""
+﻿"""
 Pytest configuration and shared fixtures
 ---------------------------------------
 Common test fixtures and configuration for the entire test suite.

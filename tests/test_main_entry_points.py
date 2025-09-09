@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for main entry points and CLI functionality
 ------------------------------------------------------
 Tests for command-line interface and main function behavior.
@@ -44,13 +44,31 @@ class TestStreamingServerMain:
             except SystemExit:
                 pass  # Expected for CLI apps
 
-    @patch("config.create_sample_env_file")
-    def test_main_generate_config_option(self, mock_create_env):
+    def test_main_generate_config_option(self):
         """Test main function with --generate-config option"""
         # This would typically be tested through click testing utilities
         # For now, test the config creation function directly
-        create_sample_env_file()
-        mock_create_env.assert_called_once()
+        import tempfile
+        import os
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Change to temp directory to avoid creating files in project
+            original_cwd = os.getcwd()
+            try:
+                os.chdir(tmp_dir)
+                create_sample_env_file()
+
+                # Verify the file was created
+                env_example_file = Path(".env.example")
+                assert env_example_file.exists()
+
+                # Verify content contains expected configuration keys
+                content = env_example_file.read_text(encoding="utf-8")
+                assert "VIDEO_SERVER_HOST" in content
+                assert "VIDEO_SERVER_PORT" in content
+                assert "VIDEO_SERVER_USERNAME" in content
+            finally:
+                os.chdir(original_cwd)
 
 
 class TestConfigMainEntryPoint:
@@ -74,7 +92,7 @@ class TestLoggingMainEntryPoint:
     """Test cases for logging_config main entry point"""
 
     @patch("logging_config.setup_logging")
-    @patch("logging_config.load_config")
+    @patch("config.load_config")
     def test_logging_main_entry_point(self, mock_load_config, mock_setup_logging):
         """Test logging_config main entry point"""
         import logging_config
@@ -208,3 +226,53 @@ class TestCLIArgumentHandling:
 
         # Test that config.debug gets updated from CLI args
         assert mock_config.debug is False  # Default
+
+
+class TestMainFunctionComprehensiveEdgeCases:
+    """Comprehensive edge case tests for main function coverage"""
+
+    def test_main_comprehensive_value_error_handling(self):
+        """Test main function with ValueError coverage"""
+        from streaming_server import main as streaming_main
+
+        with patch('streaming_server.load_config', side_effect=ValueError("Config error")):
+            with patch('builtins.print') as mock_print:
+                with patch('sys.exit') as mock_exit:
+                    streaming_main()
+                    assert mock_exit.called  # Just verify exit was called at least once
+                    mock_print.assert_called()
+
+    def test_main_comprehensive_keyboard_interrupt_handling(self):
+        """Test main function with KeyboardInterrupt coverage"""
+        from streaming_server import main as streaming_main
+
+        with patch('streaming_server.VideoStreamingServer') as mock_server:
+            mock_server.return_value.run.side_effect = KeyboardInterrupt
+            with patch('builtins.print') as mock_print:
+                with patch('sys.exit'):  # Prevent actual exit
+                    streaming_main()
+                    mock_print.assert_called_with("\nShutdown complete")
+
+    def test_main_comprehensive_general_exception_handling(self):
+        """Test main function with general exception coverage"""
+        from streaming_server import main as streaming_main
+
+        with patch('streaming_server.VideoStreamingServer') as mock_server:
+            mock_server.return_value.run.side_effect = Exception("Server error")
+            with patch('builtins.print') as mock_print:
+                with patch('sys.exit') as mock_exit:
+                    streaming_main()
+                    assert mock_exit.called  # Just verify exit was called at least once
+                    mock_print.assert_called()
+
+    def test_main_comprehensive_generate_config_path(self):
+        """Test main function with generate_config option coverage"""
+        from streaming_server import main
+        from click.testing import CliRunner
+
+        with patch('config.create_sample_env_file') as mock_create:
+            runner = CliRunner()
+            result = runner.invoke(main, ['--generate-config'])
+
+            assert result.exit_code == 0
+            mock_create.assert_called_once()

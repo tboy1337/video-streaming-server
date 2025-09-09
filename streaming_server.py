@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced Video Streaming Server
 ------------------------------
 Production-ready video streaming server with comprehensive security,
@@ -148,7 +148,7 @@ class VideoStreamingServer:
                     health_data["video_directory_accessible"] = False
                     health_data["status"] = "degraded"
 
-            except Exception as e:
+            except (OSError, IOError, PermissionError) as e:
                 health_data["status"] = "unhealthy"
                 health_data["error"] = str(e)
 
@@ -326,7 +326,7 @@ class VideoStreamingServer:
                         full_path_parts.pop()
                 elif part != ".":
                     full_path_parts.append(part)
-            
+
             video_dir_parts = []
             for part in video_dir.parts:
                 if part == "..":
@@ -340,7 +340,7 @@ class VideoStreamingServer:
                 normalized_full = Path(*full_path_parts)
             else:
                 normalized_full = Path("/")
-                
+
             if video_dir_parts:
                 normalized_video_dir = Path(*video_dir_parts)
             else:
@@ -439,7 +439,7 @@ class VideoStreamingServer:
                     )
         except PermissionError:
             return "Access denied to directory", 403
-        except Exception as e:
+        except (OSError, IOError) as e:
             self.app.logger.error(f"Error reading directory {safe_path}: {str(e)}")
             return "Error reading directory", 500
 
@@ -769,7 +769,7 @@ class VideoStreamingServer:
     <div class="container">
         {% if video_file %}
             <div class="header">
-                <a href="{{ parent_path }}" class="back-link">← Back to directory</a>
+                <a href="{{ parent_path }}" class="back-link">â† Back to directory</a>
                 <h1>{{ video_file }}</h1>
             </div>
 
@@ -799,7 +799,7 @@ class VideoStreamingServer:
                 {% if not is_root %}
                     <li>
                         <a href="{{ parent_path }}" class="file-item">
-                            <span class="file-icon folder">📁</span>
+                            <span class="file-icon folder">ðŸ“</span>
                             <div class="file-info">
                                 <div class="file-name">.. (Up to parent directory)</div>
                             </div>
@@ -811,7 +811,7 @@ class VideoStreamingServer:
                     <li>
                         <a href="{{ item.path }}" class="file-item">
                             <span class="file-icon {% if item.is_dir %}folder{% else %}video-file{% endif %}">
-                                {% if item.is_dir %}📁{% else %}🎬{% endif %}
+                                {% if item.is_dir %}ðŸ“{% else %}ðŸŽ¬{% endif %}
                             </span>
                             <div class="file-info">
                                 <div class="file-name">{{ item.name }}</div>
@@ -891,7 +891,7 @@ class VideoStreamingServer:
     "--generate-config", is_flag=True, help="Generate sample configuration file"
 )
 def main(
-    _config_file: Optional[str],
+    config_file: Optional[str],
     host: Optional[str],
     port: Optional[int],
     debug: bool,

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Configuration management for Video Streaming Server
 -------------------------------------------------
 Handles environment variables, configuration files, and default settings
@@ -67,10 +67,10 @@ class ServerConfig:
     # File Settings
     allowed_extensions: set = field(
         default_factory=lambda: (
-            set(ext.strip() for ext in os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS", "").split(",") if ext.strip()) 
+            set(ext.strip() for ext in os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS", "").split(",") if ext.strip())
             if os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS") is not None
             else {
-                ".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".flv", 
+                ".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".flv",
                 ".srt", ".mp3", ".aac", ".ogg", ".wav"
             }
         )
@@ -134,6 +134,8 @@ class ServerConfig:
         video_path = Path(self.video_directory)
         if not video_path.exists():
             raise ValueError(f"Video directory does not exist: {self.video_directory}")
+        if not video_path.is_dir():
+            raise ValueError(f"Video directory path is not a directory: {self.video_directory}")
 
         # Validate password hash
         if not self.password_hash:
