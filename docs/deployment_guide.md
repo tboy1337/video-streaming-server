@@ -78,7 +78,7 @@ VIDEO_SERVER_DIRECTORY=/path/to/your/videos
 VIDEO_SERVER_LOG_DIR=./logs
 
 # Performance Settings
-VIDEO_SERVER_MAX_FILE_SIZE=2147483648
+VIDEO_SERVER_MAX_FILE_SIZE=21474836480  # 20GB default (set to 0 to disable limit)
 VIDEO_SERVER_THREADS=6
 
 # Logging
@@ -256,7 +256,7 @@ For high-traffic deployments:
 VIDEO_SERVER_THREADS=12
 
 # Adjust memory limits
-VIDEO_SERVER_MAX_FILE_SIZE=5368709120  # 5GB
+VIDEO_SERVER_MAX_FILE_SIZE=53687091200  # 50GB for high-capacity deployments
 
 # Optimize logging
 VIDEO_SERVER_LOG_LEVEL=WARNING

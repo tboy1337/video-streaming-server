@@ -63,7 +63,8 @@ class VideoStreamingServer:
         """Create and configure Flask application"""
         app = Flask(__name__)
         app.secret_key = self.config.secret_key
-        app.config["MAX_CONTENT_LENGTH"] = self.config.max_file_size
+        # Set max file size limit (None disables the limit)
+        app.config["MAX_CONTENT_LENGTH"] = None if self.config.max_file_size <= 0 else self.config.max_file_size
 
         # Security configuration
         app.config["SESSION_COOKIE_SECURE"] = self.config.is_production()
@@ -313,12 +314,40 @@ class VideoStreamingServer:
         full_path = Path(self.config.video_directory) / requested_path
 
         try:
-            # Resolve any symlinks and normalize path
-            full_path = full_path.resolve()
-            video_dir = Path(self.config.video_directory).resolve()
+            # Use absolute path instead of resolve() to avoid symlink hanging issues
+            full_path = full_path.absolute()
+            video_dir = Path(self.config.video_directory).absolute()
+
+            # Normalize paths to handle . and .. components without resolving symlinks
+            full_path_parts = []
+            for part in full_path.parts:
+                if part == "..":
+                    if full_path_parts:
+                        full_path_parts.pop()
+                elif part != ".":
+                    full_path_parts.append(part)
+            
+            video_dir_parts = []
+            for part in video_dir.parts:
+                if part == "..":
+                    if video_dir_parts:
+                        video_dir_parts.pop()
+                elif part != ".":
+                    video_dir_parts.append(part)
+
+            # Reconstruct normalized paths
+            if full_path_parts:
+                normalized_full = Path(*full_path_parts)
+            else:
+                normalized_full = Path("/")
+                
+            if video_dir_parts:
+                normalized_video_dir = Path(*video_dir_parts)
+            else:
+                normalized_video_dir = Path("/")
 
             # Check if the path is within VIDEO_DIRECTORY
-            if video_dir in full_path.parents or full_path == video_dir:
+            if normalized_video_dir in normalized_full.parents or normalized_full == normalized_video_dir:
                 return full_path
 
             if self.security_logger:

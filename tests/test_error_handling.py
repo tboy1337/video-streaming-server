@@ -29,7 +29,10 @@ class TestConfigErrorHandling:
         with patch("pathlib.Path.home") as mock_home:
             mock_home.return_value = Path("/home/user")
             result = _get_default_video_directory()
-            assert result == "/home/user/Videos"
+            # Convert to forward slashes for cross-platform compatibility
+            expected = str(Path("/home/user/Videos")).replace("\\", "/")
+            actual = str(result).replace("\\", "/")
+            assert actual == expected
 
     def test_config_invalid_port_edge_cases(self):
         """Test config validation with edge case ports"""

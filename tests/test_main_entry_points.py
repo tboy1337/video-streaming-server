@@ -44,7 +44,7 @@ class TestStreamingServerMain:
             except SystemExit:
                 pass  # Expected for CLI apps
 
-    @patch("streaming_server.create_sample_env_file")
+    @patch("config.create_sample_env_file")
     def test_main_generate_config_option(self, mock_create_env):
         """Test main function with --generate-config option"""
         # This would typically be tested through click testing utilities

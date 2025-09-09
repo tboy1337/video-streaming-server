@@ -79,10 +79,12 @@ class TestSecurityEventLogger:
         log_content = security_log.read_text()
         log_data = json.loads(log_content.strip())
 
-        assert log_data["event_type"] == "file_access"
-        assert log_data["file_path"] == "/test/video.mp4"
-        assert log_data["success"] is True
-        assert log_data["user"] == "testuser"
+        # The logger wraps the event data in additional JSON structure
+        event_data = json.loads(log_data["event"])
+        assert event_data["event_type"] == "file_access"
+        assert event_data["file_path"] == "/test/video.mp4"
+        assert event_data["success"] is True
+        assert event_data["user"] == "testuser"
 
     def test_log_security_violation(self, test_config, tmp_path):
         """Test logging security violations"""

@@ -16,7 +16,7 @@ def _get_default_video_directory() -> str:
     """Get default video directory, with fallback if home cannot be determined"""
     try:
         return str(Path.home() / "Videos")
-    except RuntimeError:
+    except (RuntimeError, OSError):
         # Fallback if home directory cannot be determined (e.g., in tests)
         return "./videos"
 
@@ -32,7 +32,7 @@ class ServerConfig:
     )
     debug: bool = field(
         default_factory=lambda: os.getenv("VIDEO_SERVER_DEBUG", "false").lower()
-        == "true"
+        in ("true", "yes", "1", "on")
     )
     threads: int = field(
         default_factory=lambda: int(os.getenv("VIDEO_SERVER_THREADS", "6"))
@@ -66,26 +66,20 @@ class ServerConfig:
 
     # File Settings
     allowed_extensions: set = field(
-        default_factory=lambda: {
-            ".mp4",
-            ".mkv",
-            ".avi",
-            ".mov",
-            ".webm",
-            ".m4v",
-            ".flv",
-            ".srt",
-            ".mp3",
-            ".aac",
-            ".ogg",
-            ".wav",  # Added audio support
-        }
+        default_factory=lambda: (
+            set(ext.strip() for ext in os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS", "").split(",") if ext.strip()) 
+            if os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS") is not None
+            else {
+                ".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".flv", 
+                ".srt", ".mp3", ".aac", ".ogg", ".wav"
+            }
+        )
     )
     max_file_size: int = field(
         default_factory=lambda: int(
-            os.getenv("VIDEO_SERVER_MAX_FILE_SIZE", "2147483648")
+            os.getenv("VIDEO_SERVER_MAX_FILE_SIZE", "21474836480")
         )
-    )  # 2GB default
+    )  # 20GB default
 
     # Logging Settings
     log_level: str = field(
@@ -117,6 +111,17 @@ class ServerConfig:
             "Content-Security-Policy": "default-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline'",
             "Referrer-Policy": "strict-origin-when-cross-origin",
         }
+    )
+
+    # Session Cookie Settings
+    session_cookie_secure: bool = field(
+        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_SECURE", "true").lower() == "true"
+    )
+    session_cookie_httponly: bool = field(
+        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
+    )
+    session_cookie_samesite: str = field(
+        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_SAMESITE", "Strict")
     )
 
     def __post_init__(self):
@@ -214,7 +219,8 @@ VIDEO_SERVER_DIRECTORY=/path/to/your/videos
 VIDEO_SERVER_LOG_DIR=./logs
 
 # File Settings
-VIDEO_SERVER_MAX_FILE_SIZE=2147483648
+# Maximum file size in bytes (21474836480 = 20GB, set to 0 to disable limit)
+VIDEO_SERVER_MAX_FILE_SIZE=21474836480
 
 # Logging Settings
 VIDEO_SERVER_LOG_LEVEL=INFO

@@ -178,7 +178,7 @@ VIDEO_SERVER_SESSION_TIMEOUT=7200   # 2 hours
 VIDEO_SERVER_RATE_LIMIT_PER_MIN=120 # More requests per minute
 
 # Performance
-VIDEO_SERVER_MAX_FILE_SIZE=5368709120  # 5GB max file size
+VIDEO_SERVER_MAX_FILE_SIZE=21474836480  # 20GB max file size (set to 0 to disable limit)
 
 # Logging
 VIDEO_SERVER_LOG_LEVEL=DEBUG        # More detailed logs
