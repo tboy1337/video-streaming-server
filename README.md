@@ -1,4 +1,4 @@
-# Video Streaming Server - Production Ready
+# Video Streaming Server
 
 A comprehensive, production-ready video streaming server that allows you to securely share your personal video library over the internet. Built with enterprise-grade security, monitoring, and performance features.
 
