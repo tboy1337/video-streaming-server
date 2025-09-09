@@ -48,8 +48,8 @@ class TestStreamingServerMain:
         """Test main function with --generate-config option"""
         # This would typically be tested through click testing utilities
         # For now, test the config creation function directly
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Change to temp directory to avoid creating files in project
@@ -235,9 +235,11 @@ class TestMainFunctionComprehensiveEdgeCases:
         """Test main function with ValueError coverage"""
         from streaming_server import main as streaming_main
 
-        with patch('streaming_server.load_config', side_effect=ValueError("Config error")):
-            with patch('builtins.print') as mock_print:
-                with patch('sys.exit') as mock_exit:
+        with patch(
+            "streaming_server.load_config", side_effect=ValueError("Config error")
+        ):
+            with patch("builtins.print") as mock_print:
+                with patch("sys.exit") as mock_exit:
                     streaming_main()
                     assert mock_exit.called  # Just verify exit was called at least once
                     mock_print.assert_called()
@@ -246,10 +248,10 @@ class TestMainFunctionComprehensiveEdgeCases:
         """Test main function with KeyboardInterrupt coverage"""
         from streaming_server import main as streaming_main
 
-        with patch('streaming_server.VideoStreamingServer') as mock_server:
+        with patch("streaming_server.VideoStreamingServer") as mock_server:
             mock_server.return_value.run.side_effect = KeyboardInterrupt
-            with patch('builtins.print') as mock_print:
-                with patch('sys.exit'):  # Prevent actual exit
+            with patch("builtins.print") as mock_print:
+                with patch("sys.exit"):  # Prevent actual exit
                     streaming_main()
                     mock_print.assert_called_with("\nShutdown complete")
 
@@ -257,22 +259,23 @@ class TestMainFunctionComprehensiveEdgeCases:
         """Test main function with general exception coverage"""
         from streaming_server import main as streaming_main
 
-        with patch('streaming_server.VideoStreamingServer') as mock_server:
-            mock_server.return_value.run.side_effect = Exception("Server error")
-            with patch('builtins.print') as mock_print:
-                with patch('sys.exit') as mock_exit:
+        with patch("streaming_server.VideoStreamingServer") as mock_server:
+            mock_server.return_value.run.side_effect = RuntimeError("Server error")
+            with patch("builtins.print") as mock_print:
+                with patch("sys.exit") as mock_exit:
                     streaming_main()
                     assert mock_exit.called  # Just verify exit was called at least once
                     mock_print.assert_called()
 
     def test_main_comprehensive_generate_config_path(self):
         """Test main function with generate_config option coverage"""
-        from streaming_server import main
         from click.testing import CliRunner
 
-        with patch('config.create_sample_env_file') as mock_create:
+        from streaming_server import main
+
+        with patch("config.create_sample_env_file") as mock_create:
             runner = CliRunner()
-            result = runner.invoke(main, ['--generate-config'])
+            result = runner.invoke(main, ["--generate-config"])
 
             assert result.exit_code == 0
             mock_create.assert_called_once()

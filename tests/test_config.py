@@ -12,13 +12,16 @@ from unittest.mock import patch
 
 import pytest
 
-from config import ServerConfig, _get_default_video_directory, create_sample_env_file, load_config
+from config import (ServerConfig, _get_default_video_directory,
+                    create_sample_env_file, load_config)
 
 
 class TestDefaultVideoDirectoryFunction:
     """Test _get_default_video_directory function comprehensively"""
 
-    @pytest.mark.skip(reason="Path separators differ between Windows and Unix - functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="Path separators differ between Windows and Unix - functionality tested elsewhere"
+    )
     def test_get_default_video_directory_normal(self):
         """Test _get_default_video_directory under normal conditions"""
         # This test expects Unix-style paths but runs on Windows
@@ -27,13 +30,13 @@ class TestDefaultVideoDirectoryFunction:
 
     def test_get_default_video_directory_runtime_error(self):
         """Test _get_default_video_directory with RuntimeError"""
-        with patch('pathlib.Path.home', side_effect=RuntimeError("No home directory")):
+        with patch("pathlib.Path.home", side_effect=RuntimeError("No home directory")):
             result = _get_default_video_directory()
             assert result == "./videos"
 
     def test_get_default_video_directory_os_error(self):
         """Test _get_default_video_directory with OSError"""
-        with patch('pathlib.Path.home', side_effect=OSError("Permission denied")):
+        with patch("pathlib.Path.home", side_effect=OSError("Permission denied")):
             result = _get_default_video_directory()
             assert result == "./videos"
 
@@ -46,8 +49,7 @@ class TestConfigValidationEdgeCases:
         # Create config with non-existent video directory
         with pytest.raises(ValueError, match="Video directory does not exist"):
             ServerConfig(
-                video_directory="/nonexistent/directory",
-                password_hash="test_hash"
+                video_directory="/nonexistent/directory", password_hash="test_hash"
             )
 
     def test_port_validation_edge_cases(self):
@@ -56,17 +58,13 @@ class TestConfigValidationEdgeCases:
             # Test port too low
             with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
                 ServerConfig(
-                    video_directory=temp_dir,
-                    password_hash="test_hash",
-                    port=0
+                    video_directory=temp_dir, password_hash="test_hash", port=0
                 )
 
             # Test port too high
             with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
                 ServerConfig(
-                    video_directory=temp_dir,
-                    password_hash="test_hash",
-                    port=70000
+                    video_directory=temp_dir, password_hash="test_hash", port=70000
                 )
 
     def test_thread_count_validation_failure(self):
@@ -74,41 +72,30 @@ class TestConfigValidationEdgeCases:
         with tempfile.TemporaryDirectory() as temp_dir:
             with pytest.raises(ValueError, match="Thread count must be at least 1"):
                 ServerConfig(
-                    video_directory=temp_dir,
-                    password_hash="test_hash",
-                    threads=0
+                    video_directory=temp_dir, password_hash="test_hash", threads=0
                 )
 
     def test_get_database_url_method(self):
         """Test get_database_url method"""
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ServerConfig(
-                video_directory=temp_dir,
-                password_hash="test_hash"
-            )
+            config = ServerConfig(video_directory=temp_dir, password_hash="test_hash")
 
             # Test with no DATABASE_URL set
             with patch.dict(os.environ, {}, clear=True):
                 assert config.get_database_url() is None
 
             # Test with DATABASE_URL set
-            with patch.dict(os.environ, {'DATABASE_URL': 'postgresql://test'}):
-                assert config.get_database_url() == 'postgresql://test'
+            with patch.dict(os.environ, {"DATABASE_URL": "postgresql://test"}):
+                assert config.get_database_url() == "postgresql://test"
 
     def test_empty_password_hash_validation(self):
         """Test empty password hash validation"""
         with tempfile.TemporaryDirectory() as temp_dir:
             with pytest.raises(ValueError, match="PASSWORD_HASH must be set"):
-                ServerConfig(
-                    video_directory=temp_dir,
-                    password_hash=""  # Empty string
-                )
+                ServerConfig(video_directory=temp_dir, password_hash="")  # Empty string
 
             with pytest.raises(ValueError, match="PASSWORD_HASH must be set"):
-                ServerConfig(
-                    video_directory=temp_dir,
-                    password_hash=None  # None value
-                )
+                ServerConfig(video_directory=temp_dir, password_hash=None)  # None value
 
 
 class TestServerConfig:
@@ -168,34 +155,33 @@ class TestServerConfigValidationComprehensive:
         # Create a valid video directory
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test valid configuration
         config = ServerConfig(
             video_directory=str(video_dir),
             password_hash="valid_hash",
             port=8080,
             threads=4,
-            log_directory=str(tmp_path / "logs")
+            log_directory=str(tmp_path / "logs"),
         )
-        
+
         # Should not raise any exceptions
         config.validate_config()
-        
+
         # Verify log directory was created
         assert (tmp_path / "logs").exists()
 
-    @pytest.mark.skip(reason="Path validation behavior differs between Windows and Unix - functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="Path validation behavior differs between Windows and Unix - functionality tested elsewhere"
+    )
     def test_validate_config_video_directory_file_not_directory(self, tmp_path):
         """Test validation when video_directory points to a file"""
         # Create a file instead of directory
         fake_dir = tmp_path / "fake_directory"
         fake_dir.write_text("not a directory")
-        
-        config = ServerConfig(
-            video_directory=str(fake_dir),
-            password_hash="test_hash"
-        )
-        
+
+        config = ServerConfig(video_directory=str(fake_dir), password_hash="test_hash")
+
         with pytest.raises(ValueError, match="does not exist"):
             config.validate_config()
 
@@ -203,24 +189,22 @@ class TestServerConfigValidationComprehensive:
         """Test port range validation edge cases"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test port = 1 (minimum valid)
         config = ServerConfig(
-            video_directory=str(video_dir),
-            password_hash="test_hash",
-            port=1
+            video_directory=str(video_dir), password_hash="test_hash", port=1
         )
         config.validate_config()  # Should not raise
-        
+
         # Test port = 65535 (maximum valid)
         config.port = 65535
         config.validate_config()  # Should not raise
-        
+
         # Test port = 0 (invalid)
         config.port = 0
         with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
             config.validate_config()
-        
+
         # Test port = 65536 (invalid)
         config.port = 65536
         with pytest.raises(ValueError, match="Port must be between 1 and 65535"):
@@ -230,20 +214,18 @@ class TestServerConfigValidationComprehensive:
         """Test thread count validation edge cases"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test threads = 1 (minimum valid)
         config = ServerConfig(
-            video_directory=str(video_dir),
-            password_hash="test_hash",
-            threads=1
+            video_directory=str(video_dir), password_hash="test_hash", threads=1
         )
         config.validate_config()  # Should not raise
-        
+
         # Test threads = 0 (invalid)
         config.threads = 0
         with pytest.raises(ValueError, match="Thread count must be at least 1"):
             config.validate_config()
-        
+
         # Test threads = -1 (invalid)
         config.threads = -1
         with pytest.raises(ValueError, match="Thread count must be at least 1"):
@@ -253,18 +235,18 @@ class TestServerConfigValidationComprehensive:
         """Test log directory creation with nested paths"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test nested log directory creation
         nested_log_dir = tmp_path / "deeply" / "nested" / "logs"
-        
+
         config = ServerConfig(
             video_directory=str(video_dir),
             password_hash="test_hash",
-            log_directory=str(nested_log_dir)
+            log_directory=str(nested_log_dir),
         )
-        
+
         config.validate_config()
-        
+
         # Should create the entire nested path
         assert nested_log_dir.exists()
         assert nested_log_dir.is_dir()
@@ -277,27 +259,35 @@ class TestServerConfigEnvironmentVariables:
         """Test allowed_extensions parsing from environment"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test with custom extensions from environment
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_ALLOWED_EXTENSIONS': '.mp4,.mkv,.custom',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_ALLOWED_EXTENSIONS": ".mp4,.mkv,.custom",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
-            expected_extensions = {'.mp4', '.mkv', '.custom'}
+            expected_extensions = {".mp4", ".mkv", ".custom"}
             assert config.allowed_extensions == expected_extensions
 
     def test_allowed_extensions_empty_environment(self, tmp_path):
         """Test allowed_extensions with empty environment variable"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_ALLOWED_EXTENSIONS': '',  # Empty string
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_ALLOWED_EXTENSIONS": "",  # Empty string
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
             # Empty string should result in empty set (not fallback to defaults)
             assert config.allowed_extensions == set()
@@ -307,39 +297,51 @@ class TestServerConfigEnvironmentVariables:
         """Test allowed_extensions with whitespace"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_ALLOWED_EXTENSIONS': ' .mp4 , .mkv , .avi ',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_ALLOWED_EXTENSIONS": " .mp4 , .mkv , .avi ",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
-            expected_extensions = {'.mp4', '.mkv', '.avi'}
+            expected_extensions = {".mp4", ".mkv", ".avi"}
             assert config.allowed_extensions == expected_extensions
 
     def test_debug_boolean_parsing(self, tmp_path):
         """Test debug boolean parsing from environment"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        true_values = ['true', 'TRUE', 'yes', 'YES', '1', 'on', 'ON']
-        false_values = ['false', 'FALSE', 'no', 'NO', '0', 'off', 'OFF', 'invalid']
-        
+
+        true_values = ["true", "TRUE", "yes", "YES", "1", "on", "ON"]
+        false_values = ["false", "FALSE", "no", "NO", "0", "off", "OFF", "invalid"]
+
         for value in true_values:
-            with patch.dict(os.environ, {
-                'VIDEO_SERVER_DEBUG': value,
-                'VIDEO_SERVER_DIRECTORY': str(video_dir),
-                'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-            }, clear=True):
+            with patch.dict(
+                os.environ,
+                {
+                    "VIDEO_SERVER_DEBUG": value,
+                    "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                    "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+                },
+                clear=True,
+            ):
                 config = ServerConfig()
                 assert config.debug is True, f"Failed for value: {value}"
-        
+
         for value in false_values:
-            with patch.dict(os.environ, {
-                'VIDEO_SERVER_DEBUG': value,
-                'VIDEO_SERVER_DIRECTORY': str(video_dir),
-                'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-            }, clear=True):
+            with patch.dict(
+                os.environ,
+                {
+                    "VIDEO_SERVER_DEBUG": value,
+                    "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                    "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+                },
+                clear=True,
+            ):
                 config = ServerConfig()
                 assert config.debug is False, f"Failed for value: {value}"
 
@@ -347,31 +349,43 @@ class TestServerConfigEnvironmentVariables:
         """Test rate_limit_enabled boolean parsing"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         # Test 'true' value
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_RATE_LIMIT': 'true',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_RATE_LIMIT": "true",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
             assert config.rate_limit_enabled is True
-        
-        # Test 'false' value  
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_RATE_LIMIT': 'false',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+
+        # Test 'false' value
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_RATE_LIMIT": "false",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
             assert config.rate_limit_enabled is False
-        
+
         # Test non-'true' value (should be false)
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_RATE_LIMIT': 'invalid',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_RATE_LIMIT": "invalid",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
             assert config.rate_limit_enabled is False
 
@@ -379,13 +393,17 @@ class TestServerConfigEnvironmentVariables:
         """Test session cookie boolean parsing"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_SESSION_COOKIE_SECURE': 'true',
-            'VIDEO_SERVER_SESSION_COOKIE_HTTPONLY': 'false',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_SESSION_COOKIE_SECURE": "true",
+                "VIDEO_SERVER_SESSION_COOKIE_HTTPONLY": "false",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
             assert config.session_cookie_secure is True
             assert config.session_cookie_httponly is False
@@ -394,20 +412,24 @@ class TestServerConfigEnvironmentVariables:
         """Test numeric environment variable parsing"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_PORT': '9000',
-            'VIDEO_SERVER_THREADS': '12',
-            'VIDEO_SERVER_SESSION_TIMEOUT': '7200',
-            'VIDEO_SERVER_MAX_FILE_SIZE': '1073741824',
-            'VIDEO_SERVER_LOG_MAX_BYTES': '20971520',
-            'VIDEO_SERVER_LOG_BACKUP_COUNT': '10',
-            'VIDEO_SERVER_RATE_LIMIT_PER_MIN': '120',
-            'VIDEO_SERVER_DIRECTORY': str(video_dir),
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash'
-        }, clear=True):
+
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_PORT": "9000",
+                "VIDEO_SERVER_THREADS": "12",
+                "VIDEO_SERVER_SESSION_TIMEOUT": "7200",
+                "VIDEO_SERVER_MAX_FILE_SIZE": "1073741824",
+                "VIDEO_SERVER_LOG_MAX_BYTES": "20971520",
+                "VIDEO_SERVER_LOG_BACKUP_COUNT": "10",
+                "VIDEO_SERVER_RATE_LIMIT_PER_MIN": "120",
+                "VIDEO_SERVER_DIRECTORY": str(video_dir),
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+            },
+            clear=True,
+        ):
             config = ServerConfig()
-            
+
             assert config.port == 9000
             assert config.threads == 12
             assert config.session_timeout == 7200
@@ -597,87 +619,91 @@ class TestServerConfigMethodsComprehensive:
         """Test is_production with various environment values"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        config = ServerConfig(
-            video_directory=str(video_dir),
-            password_hash="test_hash"
-        )
-        
+
+        config = ServerConfig(video_directory=str(video_dir), password_hash="test_hash")
+
         # Test production environment
-        with patch.dict(os.environ, {'FLASK_ENV': 'production'}):
+        with patch.dict(os.environ, {"FLASK_ENV": "production"}):
             assert config.is_production() is True
-        
+
         # Test development environment
-        with patch.dict(os.environ, {'FLASK_ENV': 'development'}):
+        with patch.dict(os.environ, {"FLASK_ENV": "development"}):
             assert config.is_production() is False
-        
+
         # Test other values (should be False)
-        with patch.dict(os.environ, {'FLASK_ENV': 'testing'}):
+        with patch.dict(os.environ, {"FLASK_ENV": "testing"}):
             assert config.is_production() is False
-        
+
         # Test missing environment variable (should be False)
         with patch.dict(os.environ, {}, clear=True):
-            if 'FLASK_ENV' in os.environ:
-                del os.environ['FLASK_ENV']
+            if "FLASK_ENV" in os.environ:
+                del os.environ["FLASK_ENV"]
             assert config.is_production() is False
 
     def test_to_dict_comprehensive_exclusions(self, tmp_path):
         """Test to_dict method excludes all sensitive data"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
+
         config = ServerConfig(
             video_directory=str(video_dir),
             password_hash="secret_hash",
             secret_key="secret_key_value",
             username="testuser",
             host="localhost",
-            port=8080
+            port=8080,
         )
-        
+
         config_dict = config.to_dict()
-        
+
         # Test that sensitive data is excluded
-        sensitive_fields = ['password_hash', 'secret_key']
+        sensitive_fields = ["password_hash", "secret_key"]
         for field in sensitive_fields:
             assert field not in config_dict
-        
+
         # Test that non-sensitive data is included
         expected_fields = [
-            'host', 'port', 'debug', 'threads', 'username',
-            'session_timeout', 'video_directory', 'log_directory',
-            'allowed_extensions', 'max_file_size', 'log_level',
-            'rate_limit_enabled', 'rate_limit_per_minute', 'is_production'
+            "host",
+            "port",
+            "debug",
+            "threads",
+            "username",
+            "session_timeout",
+            "video_directory",
+            "log_directory",
+            "allowed_extensions",
+            "max_file_size",
+            "log_level",
+            "rate_limit_enabled",
+            "rate_limit_per_minute",
+            "is_production",
         ]
         for field in expected_fields:
             assert field in config_dict
-        
+
         # Test specific values
-        assert config_dict['username'] == "testuser"
-        assert config_dict['host'] == "localhost"
-        assert config_dict['port'] == 8080
-        assert isinstance(config_dict['allowed_extensions'], list)
-        assert isinstance(config_dict['is_production'], bool)
+        assert config_dict["username"] == "testuser"
+        assert config_dict["host"] == "localhost"
+        assert config_dict["port"] == 8080
+        assert isinstance(config_dict["allowed_extensions"], list)
+        assert isinstance(config_dict["is_production"], bool)
 
     def test_get_database_url_variations(self, tmp_path):
         """Test get_database_url with various scenarios"""
         video_dir = tmp_path / "videos"
         video_dir.mkdir()
-        
-        config = ServerConfig(
-            video_directory=str(video_dir),
-            password_hash="test_hash"
-        )
-        
+
+        config = ServerConfig(video_directory=str(video_dir), password_hash="test_hash")
+
         # Test with DATABASE_URL set
         test_url = "postgresql://user:pass@localhost:5432/dbname"
-        with patch.dict(os.environ, {'DATABASE_URL': test_url}):
+        with patch.dict(os.environ, {"DATABASE_URL": test_url}):
             assert config.get_database_url() == test_url
-        
+
         # Test with no DATABASE_URL
         with patch.dict(os.environ, {}, clear=True):
-            if 'DATABASE_URL' in os.environ:
-                del os.environ['DATABASE_URL']
+            if "DATABASE_URL" in os.environ:
+                del os.environ["DATABASE_URL"]
             assert config.get_database_url() is None
 
 
@@ -712,7 +738,9 @@ class TestConfigLoading:
             assert "VIDEO_SERVER_PASSWORD_HASH" in content
             assert "tboy1337" in content
 
-    @pytest.mark.skip(reason="Complex dotenv mocking - functionality covered in other tests")
+    @pytest.mark.skip(
+        reason="Complex dotenv mocking - functionality covered in other tests"
+    )
     def test_dotenv_loading(self, tmp_path):
         """Test .env file loading"""
         # Create a test .env file
@@ -730,7 +758,9 @@ class TestConfigLoading:
                 load_config()
                 mock_load_dotenv.assert_called_once_with(env_file)
 
-    @pytest.mark.skip(reason="Complex dotenv failure handling - functionality covered elsewhere")
+    @pytest.mark.skip(
+        reason="Complex dotenv failure handling - functionality covered elsewhere"
+    )
     def test_missing_dotenv_graceful_failure(self):
         """Test graceful handling when dotenv is not available"""
         with patch("config.load_dotenv", side_effect=ImportError):
@@ -751,32 +781,39 @@ class TestConfigLoadingComprehensive:
 
     def test_load_config_function(self):
         """Test load_config function"""
-        with patch.dict(os.environ, {
-            'VIDEO_SERVER_HOST': 'testhost',
-            'VIDEO_SERVER_PASSWORD_HASH': 'test_hash',
-            'VIDEO_SERVER_DIRECTORY': str(Path.home())
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "VIDEO_SERVER_HOST": "testhost",
+                "VIDEO_SERVER_PASSWORD_HASH": "test_hash",
+                "VIDEO_SERVER_DIRECTORY": str(Path.home()),
+            },
+        ):
             config = load_config()
             assert isinstance(config, ServerConfig)
-            assert config.host == 'testhost'
+            assert config.host == "testhost"
 
-    @pytest.mark.skip(reason="Path mocking issues with MagicMock on Windows - dotenv functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="Path mocking issues with MagicMock on Windows - dotenv functionality tested elsewhere"
+    )
     def test_load_config_with_dotenv_available(self, tmp_path):
         """Test load_config with python-dotenv available"""
         # Create a .env file
         env_file = tmp_path / ".env"
         env_file.write_text("VIDEO_SERVER_HOST=dotenv_host\n")
-        
-        with patch('config.Path') as mock_path_class:
+
+        with patch("config.Path") as mock_path_class:
             # Mock Path(".env") to return our test file
             mock_path_class.return_value = env_file
-            
+
             # Skip patching load_dotenv since it's not directly imported in config module
             # dotenv functionality is tested through environment variable tests
             config = load_config()
             assert config is not None
 
-    @pytest.mark.skip(reason="load_dotenv is not directly imported in config module - dotenv functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="load_dotenv is not directly imported in config module - dotenv functionality tested elsewhere"
+    )
     def test_load_config_with_dotenv_import_error(self):
         """Test load_config when python-dotenv is not available"""
         # This test tries to patch a non-existent attribute
@@ -785,45 +822,48 @@ class TestConfigLoadingComprehensive:
 
     def test_create_sample_env_file_content(self, tmp_path):
         """Test create_sample_env_file creates correct content"""
-        with patch('config.Path') as mock_path_class:
+        with patch("config.Path") as mock_path_class:
             env_file = tmp_path / ".env.example"
             mock_path_class.return_value = env_file
-            
-            with patch('builtins.open', create=True) as mock_open:
+
+            with patch("builtins.open", create=True) as mock_open:
                 mock_file = mock_open.return_value.__enter__.return_value
-                
+
                 create_sample_env_file()
-                
+
                 # Verify file was opened for writing
                 mock_open.assert_called_once_with(env_file, "w", encoding="utf-8")
-                
+
                 # Verify content was written
                 write_calls = mock_file.write.call_args_list
-                written_content = ''.join(call[0][0] for call in write_calls)
-                
+                written_content = "".join(call[0][0] for call in write_calls)
+
                 # Check that key configuration items are present
                 assert "VIDEO_SERVER_HOST=0.0.0.0" in written_content
                 assert "VIDEO_SERVER_PORT=5000" in written_content
                 assert "VIDEO_SERVER_USERNAME=tboy1337" in written_content
-                assert "VIDEO_SERVER_PASSWORD_HASH=your-password-hash-here" in written_content
+                assert (
+                    "VIDEO_SERVER_PASSWORD_HASH=your-password-hash-here"
+                    in written_content
+                )
                 assert "VIDEO_SERVER_DIRECTORY=/path/to/your/videos" in written_content
 
     def test_create_sample_env_file_prints_messages(self, tmp_path):
         """Test create_sample_env_file prints appropriate messages"""
-        with patch('config.Path') as mock_path_class:
+        with patch("config.Path") as mock_path_class:
             env_file = tmp_path / ".env.example"
             mock_path_class.return_value = env_file
-            
-            with patch('builtins.print') as mock_print:
-                with patch('builtins.open', create=True):
+
+            with patch("builtins.print") as mock_print:
+                with patch("builtins.open", create=True):
                     create_sample_env_file()
-                    
+
                     # Verify appropriate messages were printed
                     expected_messages = [
                         f"Sample environment file created: {env_file}",
-                        "Copy this to .env and update the values for your deployment"
+                        "Copy this to .env and update the values for your deployment",
                     ]
-                    
+
                     for message in expected_messages:
                         mock_print.assert_any_call(message)
 
@@ -909,10 +949,7 @@ class TestConfigComprehensiveEdgeCases:
         fake_file = tmp_path / "fake_directory.txt"
         fake_file.write_text("not a directory")
 
-        config = ServerConfig(
-            video_directory=str(tmp_path), 
-            password_hash="test_hash"
-        )
+        config = ServerConfig(video_directory=str(tmp_path), password_hash="test_hash")
         config.video_directory = str(fake_file)
 
         with pytest.raises(ValueError, match="is not a directory"):
@@ -922,12 +959,15 @@ class TestConfigComprehensiveEdgeCases:
         """Test environment variable fallback coverage"""
 
         # Test environment variable fallback in _get_default_video_directory
-        with patch('pathlib.Path.home', side_effect=RuntimeError("No home")):
+        with patch("pathlib.Path.home", side_effect=RuntimeError("No home")):
             from config import _get_default_video_directory
+
             default_dir = _get_default_video_directory()
             assert default_dir == "./videos"
 
-    @pytest.mark.skip(reason="load_dotenv is not directly imported in config module - dotenv functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="load_dotenv is not directly imported in config module - dotenv functionality tested elsewhere"
+    )
     def test_config_dotenv_import_error_coverage(self):
         """Test dotenv import error path coverage"""
         # This test tries to patch a non-existent attribute
@@ -938,13 +978,14 @@ class TestConfigComprehensiveEdgeCases:
 class TestConfigMainExecution:
     """Test config module main execution"""
 
-    @patch('config.create_sample_env_file')
+    @patch("config.create_sample_env_file")
     def test_main_execution_calls_create_sample_env_file(self, mock_create_env):
         """Test that running config.py as main calls create_sample_env_file"""
         # Simulate running as main
-        with patch('config.__name__', '__main__'):
+        with patch("config.__name__", "__main__"):
             # Import would trigger main execution, but we'll call it directly
             import config
+
             # The actual main execution happens at module level
             # We can test by calling the function directly
             config.create_sample_env_file()

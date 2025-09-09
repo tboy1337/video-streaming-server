@@ -20,16 +20,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import unquote
 
 import click
-from flask import (
-    Flask,
-    Response,
-    g,
-    jsonify,
-    render_template_string,
-    request,
-    send_from_directory,
-    session,
-)
+from flask import (Flask, Response, g, jsonify, render_template_string,
+                   request, send_from_directory, session)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from waitress import serve
@@ -38,12 +30,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 
 from config import ServerConfig, load_config
-from logging_config import (
-    PerformanceLogger,
-    SecurityEventLogger,
-    log_system_info,
-    setup_logging,
-)
+from logging_config import (PerformanceLogger, SecurityEventLogger,
+                            log_system_info, setup_logging)
 
 
 class VideoStreamingServer:
@@ -64,7 +52,9 @@ class VideoStreamingServer:
         app = Flask(__name__)
         app.secret_key = self.config.secret_key
         # Set max file size limit (None disables the limit)
-        app.config["MAX_CONTENT_LENGTH"] = None if self.config.max_file_size <= 0 else self.config.max_file_size
+        app.config["MAX_CONTENT_LENGTH"] = (
+            None if self.config.max_file_size <= 0 else self.config.max_file_size
+        )
 
         # Security configuration
         app.config["SESSION_COOKIE_SECURE"] = self.config.is_production()
@@ -347,7 +337,10 @@ class VideoStreamingServer:
                 normalized_video_dir = Path("/")
 
             # Check if the path is within VIDEO_DIRECTORY
-            if normalized_video_dir in normalized_full.parents or normalized_full == normalized_video_dir:
+            if (
+                normalized_video_dir in normalized_full.parents
+                or normalized_full == normalized_video_dir
+            ):
                 return full_path
 
             if self.security_logger:
@@ -514,7 +507,7 @@ class VideoStreamingServer:
 
             return response
 
-        except Exception as e:
+        except (OSError, IOError, PermissionError, FileNotFoundError) as e:
             self.app.logger.error(f"Error streaming file {video_path}: {str(e)}")
             return "Error streaming file", 500
 
@@ -562,7 +555,7 @@ class VideoStreamingServer:
                 }
             )
 
-        except Exception as e:
+        except (OSError, IOError, PermissionError, ValueError) as e:
             self.app.logger.error(f"API files error: {str(e)}")
             return jsonify({"error": "Internal server error"}), 500
 
@@ -891,7 +884,7 @@ class VideoStreamingServer:
     "--generate-config", is_flag=True, help="Generate sample configuration file"
 )
 def main(
-    config_file: Optional[str],
+    config_file: Optional[str],  # pylint: disable=unused-argument
     host: Optional[str],
     port: Optional[int],
     debug: bool,
@@ -930,7 +923,7 @@ def main(
         sys.exit(1)
     except KeyboardInterrupt:
         print("\nShutdown complete")
-    except Exception as e:
+    except (RuntimeError, OSError, ImportError) as e:
         print(f"Server Error: {e}")
         sys.exit(1)
 

@@ -382,7 +382,9 @@ class TestDenialOfServiceProtection:
         # Should handle gracefully
         assert response.status_code in [400, 404]
 
-    @pytest.mark.skip(reason="Concurrent threading test with 20 threads causing hangs - authentication tested elsewhere")
+    @pytest.mark.skip(
+        reason="Concurrent threading test with 20 threads causing hangs - authentication tested elsewhere"
+    )
     def test_concurrent_auth_requests(self, test_server, test_config):
         """Test server stability under concurrent authentication requests"""
         import threading
@@ -494,24 +496,27 @@ class TestSecurityLogging:
         security_log = tmp_path / "security.log"
         log_content = security_log.read_text()
 
-    def test_comprehensive_path_traversal_security_violations(self, test_server, tmp_path):
+    def test_comprehensive_path_traversal_security_violations(
+        self, test_server, tmp_path
+    ):
         """Test comprehensive path traversal security violation logging"""
         test_server.config.log_directory = str(tmp_path)
-        
+
         # Ensure security logger exists and is mocked for testing
         from unittest.mock import MagicMock
+
         test_server.security_logger = MagicMock()
-        
+
         # Test various path traversal attempts
         dangerous_paths = [
             "../../../etc/passwd",
-            "..\\..\\windows\\system32", 
+            "..\\..\\windows\\system32",
             "path//with//double//slashes",
             "/absolute/path/attack",
             "path/../../../sensitive/file",
-            "path/./../../etc/hosts"
+            "path/./../../etc/hosts",
         ]
-        
+
         with test_server.app.test_request_context():
             for path in dangerous_paths:
                 # Test get_safe_path which should log security violations
@@ -519,10 +524,10 @@ class TestSecurityLogging:
                 if result is None:  # Path was blocked
                     # Should have logged a security violation
                     continue
-        
+
         # Verify that security violations were logged for blocked paths
         # (The actual count depends on which paths get blocked)
-        if hasattr(test_server.security_logger, 'log_security_violation'):
+        if hasattr(test_server.security_logger, "log_security_violation"):
             test_server.security_logger.log_security_violation.assert_called()
 
 
@@ -584,7 +589,9 @@ class TestCryptographicSecurity:
 class TestSecurityPerformance:
     """Performance tests for security features"""
 
-    @pytest.mark.skip(reason="Heavy performance test causing hangs - authentication performance tested elsewhere")
+    @pytest.mark.skip(
+        reason="Heavy performance test causing hangs - authentication performance tested elsewhere"
+    )
     def test_authentication_performance(self, test_server, test_config):
         """Test authentication performance under load"""
         import time
@@ -601,7 +608,9 @@ class TestSecurityPerformance:
         # Should complete 100 authentications within reasonable time
         assert end_time - start_time < 15.0
 
-    @pytest.mark.skip(reason="Heavy performance test with 1000 iterations causing hangs - path validation tested elsewhere")
+    @pytest.mark.skip(
+        reason="Heavy performance test with 1000 iterations causing hangs - path validation tested elsewhere"
+    )
     def test_path_validation_performance(self, test_server):
         """Test path validation performance"""
         import time
@@ -625,7 +634,9 @@ class TestSecurityPerformance:
         # Should validate paths quickly
         assert end_time - start_time < 3.0
 
-    @pytest.mark.skip(reason="Heavy performance test with 1000 logging operations causing hangs - logging performance tested elsewhere")
+    @pytest.mark.skip(
+        reason="Heavy performance test with 1000 logging operations causing hangs - logging performance tested elsewhere"
+    )
     def test_security_logging_performance(self, test_server, tmp_path):
         """Test security logging performance"""
         import time

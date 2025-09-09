@@ -17,8 +17,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from flask import session
 
-from streaming_server import VideoStreamingServer, main
 from config import ServerConfig
+from streaming_server import VideoStreamingServer, main
 
 
 class TestVideoStreamingServer:
@@ -38,7 +38,11 @@ class TestVideoStreamingServer:
         app = test_server.app
 
         assert app.config["TESTING"] is False  # Will be set by test client
-        expected_max_length = None if test_server.config.max_file_size <= 0 else test_server.config.max_file_size
+        expected_max_length = (
+            None
+            if test_server.config.max_file_size <= 0
+            else test_server.config.max_file_size
+        )
         assert app.config["MAX_CONTENT_LENGTH"] == expected_max_length
         assert app.secret_key == test_server.config.secret_key
 
@@ -79,7 +83,7 @@ class TestVideoStreamingServerComprehensive:
                 video_directory=temp_dir,
                 password_hash="test_hash",
                 rate_limit_enabled=True,
-                debug=True
+                debug=True,
             )
 
             server = VideoStreamingServer(config)
@@ -88,8 +92,8 @@ class TestVideoStreamingServerComprehensive:
             assert server.config == config
             assert server.app is not None
             assert server.limiter is not None
-            assert hasattr(server, 'security_logger')
-            assert hasattr(server, 'performance_logger')
+            assert hasattr(server, "security_logger")
+            assert hasattr(server, "performance_logger")
 
     def test_server_with_rate_limiting_disabled(self):
         """Test server initialization with rate limiting disabled"""
@@ -97,7 +101,7 @@ class TestVideoStreamingServerComprehensive:
             config = ServerConfig(
                 video_directory=temp_dir,
                 password_hash="test_hash",
-                rate_limit_enabled=False
+                rate_limit_enabled=False,
             )
 
             server = VideoStreamingServer(config)
@@ -106,7 +110,7 @@ class TestVideoStreamingServerComprehensive:
     def test_get_html_template_method(self, test_server):
         """Test _get_html_template method"""
         template = test_server._get_html_template()
-        
+
         assert "<!DOCTYPE html>" in template
         assert "Video Streaming Server" in template
         assert "<video controls" in template
@@ -117,29 +121,29 @@ class TestVideoStreamingServerComprehensive:
         # Create test files
         video_file = temp_video_dir / "test.mp4"
         video_file.write_text("fake video content")
-        
+
         subdir = temp_video_dir / "subdir"
         subdir.mkdir(exist_ok=True)
-        
+
         non_video_file = temp_video_dir / "document.txt"
         non_video_file.write_text("not a video")
-        
+
         with test_server.app.test_request_context():
-            with patch.object(test_server, '_check_authentication', return_value=True):
+            with patch.object(test_server, "_check_authentication", return_value=True):
                 # Test directory listing
                 result = test_server._handle_index_request("")
                 assert isinstance(result, str)
                 assert "test.mp4" in result or "Video Streaming Server" in result
-                
+
                 # Test video file display
                 result = test_server._handle_index_request("test.mp4")
                 assert isinstance(result, str)
                 assert "test.mp4" in result
-                
+
                 # Test non-video file (should return 400)
                 result = test_server._handle_index_request("document.txt")
                 assert result == ("Not a video file", 400)
-                
+
                 # Test non-existent path
                 result = test_server._handle_index_request("nonexistent.mp4")
                 assert result == ("Path not found", 404)
@@ -147,7 +151,7 @@ class TestVideoStreamingServerComprehensive:
     def test_handle_index_request_without_auth(self, test_server):
         """Test _handle_index_request without authentication"""
         with test_server.app.test_request_context():
-            with patch.object(test_server, '_check_authentication', return_value=False):
+            with patch.object(test_server, "_check_authentication", return_value=False):
                 result = test_server._handle_index_request("")
                 assert result.status_code == 401
 
@@ -226,12 +230,11 @@ class TestAuthentication:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Use a real password hash for testing
             from werkzeug.security import generate_password_hash
+
             password_hash = generate_password_hash("correct_password")
 
             config = ServerConfig(
-                video_directory=temp_dir,
-                password_hash=password_hash,
-                username="admin"
+                video_directory=temp_dir, password_hash=password_hash, username="admin"
             )
 
             server = VideoStreamingServer(config)
@@ -287,23 +290,23 @@ class TestPathSecurity:
             # Test with None
             result = test_server.get_safe_path(None)
             assert result == Path(test_server.config.video_directory)
-            
+
             # Test with empty string
             result = test_server.get_safe_path("")
             assert result == Path(test_server.config.video_directory)
-            
+
             # Test with various malicious paths
             dangerous_paths = [
                 "../../../etc/passwd",
-                "..\\..\\windows\\system32", 
+                "..\\..\\windows\\system32",
                 "path//with//double//slashes",
                 "/absolute/path/attack",
                 "path/../../../sensitive/file",
                 "path/./../../etc/hosts",
                 "path\\..\\.\\..\\windows\\system32",
-                "path/../traversal"
+                "path/../traversal",
             ]
-            
+
             for path in dangerous_paths:
                 result = test_server.get_safe_path(path)
                 assert result is None
@@ -337,7 +340,7 @@ class TestDirectoryListing:
         crumbs = test_server.get_breadcrumbs(temp_video_dir)
         assert len(crumbs) == 1
         assert crumbs[0]["name"] == "Home"
-        
+
         # Test subdirectory
         subdir = temp_video_dir / "subdir" / "nested"
         subdir.mkdir(parents=True)
@@ -479,32 +482,35 @@ class TestHealthCheckComprehensive:
     def test_health_check_healthy(self, test_server):
         """Test health check when everything is healthy"""
         with test_server.app.test_client() as client:
-            with patch.object(Path, 'exists', return_value=True):
-                with patch('os.access', return_value=True):
-                    response = client.get('/health')
+            with patch.object(Path, "exists", return_value=True):
+                with patch("os.access", return_value=True):
+                    response = client.get("/health")
                     assert response.status_code == 200
-                    
+
                     data = json.loads(response.data)
-                    assert data['status'] == 'healthy'
-                    assert 'timestamp' in data
-                    assert 'version' in data
+                    assert data["status"] == "healthy"
+                    assert "timestamp" in data
+                    assert "version" in data
 
     def test_health_check_degraded(self, test_server):
         """Test health check when video directory is not accessible"""
         with test_server.app.test_client() as client:
-            with patch.object(Path, 'exists', return_value=False):
-                response = client.get('/health')
+            with patch.object(Path, "exists", return_value=False):
+                response = client.get("/health")
                 assert response.status_code == 503
-                
+
                 data = json.loads(response.data)
-                assert data['status'] == 'degraded'
+                assert data["status"] == "degraded"
 
     def test_health_check_exception(self, test_server):
         """Test health check with exception"""
         with test_server.app.test_client() as client:
-            with patch.object(Path, 'exists', side_effect=Exception("Test error")):
-                response = client.get('/health')
-                assert response.status_code in [500, 503]  # Either internal error or service unavailable
+            with patch.object(Path, "exists", side_effect=Exception("Test error")):
+                response = client.get("/health")
+                assert response.status_code in [
+                    500,
+                    503,
+                ]  # Either internal error or service unavailable
 
 
 class TestErrorHandling:
@@ -538,13 +544,15 @@ class TestErrorHandling:
         with test_server.app.test_client() as client:
             with client.session_transaction() as sess:
                 # Set up an expired session
-                sess['authenticated'] = True
-                sess['last_activity'] = time.time() - (test_server.config.session_timeout + 100)
-                sess['username'] = 'testuser'
-            
+                sess["authenticated"] = True
+                sess["last_activity"] = time.time() - (
+                    test_server.config.session_timeout + 100
+                )
+                sess["username"] = "testuser"
+
             # Make a request that should trigger session timeout
-            response = client.get('/')
-            
+            response = client.get("/")
+
             # Session should be cleared and user redirected to auth
             assert response.status_code == 401
 
@@ -689,8 +697,8 @@ class TestFileTypeHandling:
 class TestMainFunctionComprehensive:
     """Comprehensive tests for the main function"""
 
-    @patch('streaming_server.VideoStreamingServer')
-    @patch('streaming_server.load_config')
+    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.load_config")
     def test_main_function_normal_operation(self, mock_load_config, mock_server_class):
         """Test main function normal operation"""
         # Setup mocks
@@ -698,56 +706,60 @@ class TestMainFunctionComprehensive:
         mock_load_config.return_value = mock_config
         mock_server = Mock()
         mock_server_class.return_value = mock_server
-        
+
         # Test with no arguments
-        with patch('streaming_server.click.Context') as mock_ctx:
+        with patch("streaming_server.click.Context") as mock_ctx:
             mock_ctx.return_value.params = {}
             result = main(None, None, None, False, False)
-            
+
             mock_server_class.assert_called_once_with(mock_config)
             mock_server.run.assert_called_once()
 
-    @patch('streaming_server.load_config')
-    @patch('builtins.print')
+    @patch("streaming_server.load_config")
+    @patch("builtins.print")
     def test_main_function_value_error(self, mock_print, mock_load_config):
         """Test main function with ValueError"""
         mock_load_config.side_effect = ValueError("Configuration error")
-        
+
         with pytest.raises(SystemExit) as excinfo:
             main(None, None, None, False, False)
-        
+
         assert excinfo.value.code == 1
         mock_print.assert_any_call("Configuration Error: Configuration error")
 
-    @patch('streaming_server.load_config')
-    @patch('streaming_server.VideoStreamingServer')
-    @patch('builtins.print')
-    def test_main_function_keyboard_interrupt(self, mock_print, mock_server_class, mock_load_config):
+    @patch("streaming_server.load_config")
+    @patch("streaming_server.VideoStreamingServer")
+    @patch("builtins.print")
+    def test_main_function_keyboard_interrupt(
+        self, mock_print, mock_server_class, mock_load_config
+    ):
         """Test main function with KeyboardInterrupt"""
         mock_config = Mock()
         mock_load_config.return_value = mock_config
         mock_server = Mock()
         mock_server.run.side_effect = KeyboardInterrupt()
         mock_server_class.return_value = mock_server
-        
+
         # Should not raise SystemExit
         main(None, None, None, False, False)
         mock_print.assert_any_call("\nShutdown complete")
 
-    @patch('streaming_server.load_config')
-    @patch('streaming_server.VideoStreamingServer')
-    @patch('builtins.print')
-    def test_main_function_generic_exception(self, mock_print, mock_server_class, mock_load_config):
+    @patch("streaming_server.load_config")
+    @patch("streaming_server.VideoStreamingServer")
+    @patch("builtins.print")
+    def test_main_function_generic_exception(
+        self, mock_print, mock_server_class, mock_load_config
+    ):
         """Test main function with generic exception"""
         mock_config = Mock()
         mock_load_config.return_value = mock_config
         mock_server = Mock()
         mock_server.run.side_effect = RuntimeError("Server error")
         mock_server_class.return_value = mock_server
-        
+
         with pytest.raises(SystemExit) as excinfo:
             main(None, None, None, False, False)
-        
+
         assert excinfo.value.code == 1
         mock_print.assert_any_call("Server Error: Server error")
 
@@ -755,8 +767,8 @@ class TestMainFunctionComprehensive:
 class TestServerRunMethod:
     """Test the server run method comprehensively"""
 
-    @patch('streaming_server.serve')
-    @patch('builtins.print')
+    @patch("streaming_server.serve")
+    @patch("builtins.print")
     def test_run_method_successful_start(self, mock_print, mock_serve):
         """Test successful server start"""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -765,52 +777,46 @@ class TestServerRunMethod:
                 password_hash="test_hash",
                 host="127.0.0.1",
                 port=5000,
-                threads=4
+                threads=4,
             )
             server = VideoStreamingServer(config)
-            
+
             server.run()
-            
+
             # Verify serve was called with correct parameters
             args, kwargs = mock_serve.call_args
             assert args[0] == server.app
-            assert kwargs['host'] == "127.0.0.1"
-            assert kwargs['port'] == 5000
-            assert kwargs['threads'] == 4
-            
+            assert kwargs["host"] == "127.0.0.1"
+            assert kwargs["port"] == 5000
+            assert kwargs["threads"] == 4
+
             # Verify startup messages
             mock_print.assert_any_call("Video Streaming Server starting...")
             mock_print.assert_any_call(f"Server running on http://127.0.0.1:5000")
 
-    @patch('streaming_server.serve')
-    @patch('builtins.print')
+    @patch("streaming_server.serve")
+    @patch("builtins.print")
     def test_run_method_keyboard_interrupt(self, mock_print, mock_serve):
         """Test server run with KeyboardInterrupt"""
         mock_serve.side_effect = KeyboardInterrupt()
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ServerConfig(
-                video_directory=temp_dir,
-                password_hash="test_hash"
-            )
+            config = ServerConfig(video_directory=temp_dir, password_hash="test_hash")
             server = VideoStreamingServer(config)
-            
+
             server.run()  # Should not raise exception
-            
+
             mock_print.assert_any_call("\nServer stopped by user")
 
-    @patch('streaming_server.serve')
+    @patch("streaming_server.serve")
     def test_run_method_generic_exception(self, mock_serve):
         """Test server run with generic exception"""
         mock_serve.side_effect = RuntimeError("Server error")
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            config = ServerConfig(
-                video_directory=temp_dir,
-                password_hash="test_hash"
-            )
+            config = ServerConfig(video_directory=temp_dir, password_hash="test_hash")
             server = VideoStreamingServer(config)
-            
+
             with pytest.raises(RuntimeError):
                 server.run()
 
@@ -865,22 +871,22 @@ class TestRequestLogging:
     def test_after_request_performance_logging(self, test_server):
         """Test performance logging in after_request handler"""
         from flask import g
-        
+
         # Mock the performance logger
         test_server.performance_logger = MagicMock()
-        
+
         with test_server.app.test_client() as client:
-            with test_server.app.test_request_context('/test'):
+            with test_server.app.test_request_context("/test"):
                 # Set up request context with start_time (this triggers performance logging)
                 g.start_time = time.time() - 0.1  # 100ms ago
                 g.request_id = "test_request_123"
-                
+
                 # Create and process a response
                 response = test_server.app.make_response("test response")
                 response.status_code = 200
-                
+
                 # Process the response (triggers after_request)
                 processed_response = test_server.app.process_response(response)
-                
+
                 # Verify performance logging was called
                 test_server.performance_logger.log_request_duration.assert_called_once()

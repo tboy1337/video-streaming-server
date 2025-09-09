@@ -67,11 +67,25 @@ class ServerConfig:
     # File Settings
     allowed_extensions: set = field(
         default_factory=lambda: (
-            set(ext.strip() for ext in os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS", "").split(",") if ext.strip())
+            set(
+                ext.strip()
+                for ext in os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS", "").split(",")
+                if ext.strip()
+            )
             if os.getenv("VIDEO_SERVER_ALLOWED_EXTENSIONS") is not None
             else {
-                ".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".flv",
-                ".srt", ".mp3", ".aac", ".ogg", ".wav"
+                ".mp4",
+                ".mkv",
+                ".avi",
+                ".mov",
+                ".webm",
+                ".m4v",
+                ".flv",
+                ".srt",
+                ".mp3",
+                ".aac",
+                ".ogg",
+                ".wav",
             }
         )
     )
@@ -115,13 +129,21 @@ class ServerConfig:
 
     # Session Cookie Settings
     session_cookie_secure: bool = field(
-        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_SECURE", "true").lower() == "true"
+        default_factory=lambda: os.getenv(
+            "VIDEO_SERVER_SESSION_COOKIE_SECURE", "true"
+        ).lower()
+        == "true"
     )
     session_cookie_httponly: bool = field(
-        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
+        default_factory=lambda: os.getenv(
+            "VIDEO_SERVER_SESSION_COOKIE_HTTPONLY", "true"
+        ).lower()
+        == "true"
     )
     session_cookie_samesite: str = field(
-        default_factory=lambda: os.getenv("VIDEO_SERVER_SESSION_COOKIE_SAMESITE", "Strict")
+        default_factory=lambda: os.getenv(
+            "VIDEO_SERVER_SESSION_COOKIE_SAMESITE", "Strict"
+        )
     )
 
     def __post_init__(self):
@@ -135,7 +157,9 @@ class ServerConfig:
         if not video_path.exists():
             raise ValueError(f"Video directory does not exist: {self.video_directory}")
         if not video_path.is_dir():
-            raise ValueError(f"Video directory path is not a directory: {self.video_directory}")
+            raise ValueError(
+                f"Video directory path is not a directory: {self.video_directory}"
+            )
 
         # Validate password hash
         if not self.password_hash:

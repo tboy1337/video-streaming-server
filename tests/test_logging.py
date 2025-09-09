@@ -14,13 +14,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from config import ServerConfig
-from logging_config import (
-    PerformanceLogger,
-    SecurityEventLogger,
-    get_request_logger,
-    log_system_info,
-    setup_logging,
-)
+from logging_config import (PerformanceLogger, SecurityEventLogger,
+                            get_request_logger, log_system_info, setup_logging)
 
 
 class TestSecurityEventLogger:
@@ -87,7 +82,9 @@ class TestSecurityEventLogger:
         log_data = json.loads(log_content.strip())
 
         # The logger wraps the event data in additional JSON structure
-        event_data = log_data["event"]  # event_data is already a dict, not a JSON string
+        event_data = log_data[
+            "event"
+        ]  # event_data is already a dict, not a JSON string
         assert event_data["event_type"] == "file_access"
         assert event_data["file_path"] == "/test/video.mp4"
         assert event_data["success"] is True
@@ -124,7 +121,7 @@ class TestSecurityEventLogger:
         security_log = tmp_path / "security.log"
         log_content = security_log.read_text()
         log_data = json.loads(log_content.strip())
-        
+
         # The actual event data is in the "event" field
         event_data = log_data["event"]
 
@@ -140,13 +137,13 @@ class TestSecurityEventLoggerComprehensive:
         """Test security logger setup details"""
         test_config.log_directory = str(tmp_path)
         logger = SecurityEventLogger(test_config)
-        
+
         # Test logger configuration
         assert logger.logger.name == "security"
         assert logger.logger.level == logging.INFO
         assert not logger.logger.propagate
         assert len(logger.logger.handlers) > 0
-        
+
         # Test handler configuration
         handler = logger.logger.handlers[0]
         assert handler.maxBytes == test_config.log_max_bytes
@@ -156,22 +153,22 @@ class TestSecurityEventLoggerComprehensive:
         """Test log_auth_attempt with different success levels"""
         test_config.log_directory = str(tmp_path)
         logger = SecurityEventLogger(test_config)
-        
+
         # Test successful auth (INFO level)
         logger.log_auth_attempt("user", True, "127.0.0.1", "browser")
-        
+
         # Test failed auth (WARNING level)
         logger.log_auth_attempt("user", False, "127.0.0.1", "browser")
-        
+
         security_log = tmp_path / "security.log"
         content = security_log.read_text()
-        lines = [line for line in content.strip().split('\n') if line]
-        
+        lines = [line for line in content.strip().split("\n") if line]
+
         assert len(lines) == 2
         # First line should be INFO level
         first_log = json.loads(lines[0])
         assert first_log["level"] == "INFO"
-        
+
         # Second line should be WARNING level
         second_log = json.loads(lines[1])
         assert second_log["level"] == "WARNING"
@@ -180,21 +177,21 @@ class TestSecurityEventLoggerComprehensive:
         """Test log_file_access with different success levels"""
         test_config.log_directory = str(tmp_path)
         logger = SecurityEventLogger(test_config)
-        
+
         # Test successful access (INFO level)
         logger.log_file_access("/path/file.mp4", "127.0.0.1", True, "user")
-        
-        # Test failed access (WARNING level) 
+
+        # Test failed access (WARNING level)
         logger.log_file_access("/path/file.mp4", "127.0.0.1", False, "user")
-        
+
         security_log = tmp_path / "security.log"
         content = security_log.read_text()
-        lines = [line for line in content.strip().split('\n') if line]
-        
+        lines = [line for line in content.strip().split("\n") if line]
+
         assert len(lines) == 2
         first_log = json.loads(lines[0])
         assert first_log["level"] == "INFO"
-        
+
         second_log = json.loads(lines[1])
         assert second_log["level"] == "WARNING"
 
@@ -202,20 +199,20 @@ class TestSecurityEventLoggerComprehensive:
         """Test security event data structure completeness"""
         test_config.log_directory = str(tmp_path)
         logger = SecurityEventLogger(test_config)
-        
+
         logger.log_auth_attempt("testuser", True, "192.168.1.100", "Mozilla Firefox")
-        
+
         security_log = tmp_path / "security.log"
         content = security_log.read_text()
         log_data = json.loads(content.strip())
-        
+
         # Check main log structure
         assert "timestamp" in log_data
         assert "level" in log_data
         assert "event" in log_data
         assert "module" in log_data
         assert "line" in log_data
-        
+
         # Check event data structure
         event_data = log_data["event"]
         assert "event_type" in event_data
@@ -250,7 +247,7 @@ class TestPerformanceLogger:
 
         log_content = perf_log.read_text()
         log_data = json.loads(log_content.strip())
-        
+
         # The actual metric data is in the "metric" field
         metric_data = log_data["metric"]
 
@@ -270,7 +267,7 @@ class TestPerformanceLogger:
         perf_log = tmp_path / "performance.log"
         log_content = perf_log.read_text()
         log_data = json.loads(log_content.strip())
-        
+
         # The actual metric data is in the "metric" field
         metric_data = log_data["metric"]
 
@@ -290,7 +287,7 @@ class TestPerformanceLogger:
         perf_log = tmp_path / "performance.log"
         log_content = perf_log.read_text()
         log_data = json.loads(log_content.strip())
-        
+
         # The actual metric data is in the "metric" field
         metric_data = log_data["metric"]
 
@@ -304,12 +301,12 @@ class TestPerformanceLoggerComprehensive:
         """Test performance logger setup details"""
         test_config.log_directory = str(tmp_path)
         logger = PerformanceLogger(test_config)
-        
+
         assert logger.logger.name == "performance"
         assert logger.logger.level == logging.INFO
         assert not logger.logger.propagate
         assert len(logger.logger.handlers) > 0
-        
+
         # Test handler configuration
         handler = logger.logger.handlers[0]
         assert handler.maxBytes == test_config.log_max_bytes
@@ -319,17 +316,17 @@ class TestPerformanceLoggerComprehensive:
         """Test request duration logging data structure"""
         test_config.log_directory = str(tmp_path)
         logger = PerformanceLogger(test_config)
-        
+
         logger.log_request_duration("/api/test", 0.125, 200)
-        
+
         perf_log = tmp_path / "performance.log"
         content = perf_log.read_text()
         log_data = json.loads(content.strip())
-        
+
         # Check main structure
         assert "timestamp" in log_data
         assert "metric" in log_data
-        
+
         # Check metric data
         metric_data = log_data["metric"]
         assert metric_data["type"] == "request_duration"
@@ -342,14 +339,14 @@ class TestPerformanceLoggerComprehensive:
         """Test file serve time calculations"""
         test_config.log_directory = str(tmp_path)
         logger = PerformanceLogger(test_config)
-        
+
         # Test normal case
         logger.log_file_serve_time("/video.mp4", 10485760, 2.0)  # 10MB in 2 seconds
-        
+
         perf_log = tmp_path / "performance.log"
         content = perf_log.read_text()
         log_data = json.loads(content.strip())
-        
+
         metric_data = log_data["metric"]
         assert metric_data["type"] == "file_serve"
         assert metric_data["file_path"] == "/video.mp4"
@@ -361,13 +358,13 @@ class TestPerformanceLoggerComprehensive:
         """Test file serve time with zero duration edge case"""
         test_config.log_directory = str(tmp_path)
         logger = PerformanceLogger(test_config)
-        
+
         logger.log_file_serve_time("/video.mp4", 1000000, 0.0)
-        
+
         perf_log = tmp_path / "performance.log"
         content = perf_log.read_text()
         log_data = json.loads(content.strip())
-        
+
         metric_data = log_data["metric"]
         assert metric_data["throughput_mbps"] == 0  # Should handle division by zero
 
@@ -450,12 +447,12 @@ class TestLoggingSetupComprehensive:
     def test_setup_logging_log_level_validation(self, test_config, tmp_path):
         """Test setup_logging with various log levels"""
         test_config.log_directory = str(tmp_path)
-        
+
         # Test valid log level
         test_config.log_level = "DEBUG"
         components = setup_logging(test_config)
         assert components["root_logger"].level == logging.DEBUG
-        
+
         # Test invalid log level (should fallback to INFO)
         test_config.log_level = "INVALID_LEVEL"
         components = setup_logging(test_config)
@@ -464,33 +461,33 @@ class TestLoggingSetupComprehensive:
     def test_setup_logging_handler_cleanup(self, test_config, tmp_path):
         """Test that setup_logging cleans up existing handlers"""
         test_config.log_directory = str(tmp_path)
-        
+
         # Add some handlers to root logger
         root_logger = logging.getLogger()
         original_handler_count = len(root_logger.handlers)
-        
+
         # Add a dummy handler
         dummy_handler = logging.StreamHandler()
         root_logger.addHandler(dummy_handler)
-        
+
         # Setup logging should clean up handlers
         components = setup_logging(test_config)
-        
+
         # Should have the expected handlers, not the dummy one
         assert len(components["root_logger"].handlers) >= 3  # console, file, error
 
     def test_setup_logging_flask_logger_configuration(self, test_config, tmp_path):
         """Test Flask logger configuration in different modes"""
         test_config.log_directory = str(tmp_path)
-        
+
         # Test production mode
-        with patch.object(test_config, 'is_production', return_value=True):
+        with patch.object(test_config, "is_production", return_value=True):
             setup_logging(test_config)
             flask_logger = logging.getLogger("werkzeug")
             assert flask_logger.level == logging.WARNING
-        
+
         # Test development mode
-        with patch.object(test_config, 'is_production', return_value=False):
+        with patch.object(test_config, "is_production", return_value=False):
             setup_logging(test_config)
             flask_logger = logging.getLogger("werkzeug")
             assert flask_logger.level == logging.INFO
@@ -498,38 +495,40 @@ class TestLoggingSetupComprehensive:
     def test_setup_logging_directory_creation(self, tmp_path):
         """Test that setup_logging creates log directory"""
         log_dir = tmp_path / "nested" / "logs"
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             config = ServerConfig(
                 video_directory=temp_dir,
                 password_hash="test_hash",
-                log_directory=str(log_dir)
+                log_directory=str(log_dir),
             )
-            
+
             # Directory should exist after ServerConfig creation (created in validate_config)
             assert log_dir.exists()
             assert log_dir.is_dir()
-            
+
             setup_logging(config)
-            
+
             # Should still exist and be properly configured
             assert log_dir.exists()
             assert log_dir.is_dir()
 
-    @patch('logging_config.structlog')
-    def test_structlog_configuration_comprehensive(self, mock_structlog, test_config, tmp_path):
+    @patch("logging_config.structlog")
+    def test_structlog_configuration_comprehensive(
+        self, mock_structlog, test_config, tmp_path
+    ):
         """Test comprehensive structlog configuration"""
         test_config.log_directory = str(tmp_path)
-        
+
         setup_logging(test_config)
-        
+
         # Verify structlog.configure was called
         mock_structlog.configure.assert_called_once()
-        
+
         # Check call arguments
         call_args = mock_structlog.configure.call_args
         kwargs = call_args.kwargs
-        
+
         assert "processors" in kwargs
         assert "context_class" in kwargs
         assert "logger_factory" in kwargs
@@ -567,41 +566,47 @@ class TestUtilityFunctionsComprehensive:
         """Test get_request_logger with various names"""
         logger1 = get_request_logger("handler1")
         logger2 = get_request_logger("handler2")
-        
+
         assert logger1.name == "request.handler1"
         assert logger2.name == "request.handler2"
         assert isinstance(logger1, logging.Logger)
         assert isinstance(logger2, logging.Logger)
         assert logger1 != logger2
 
-    @pytest.mark.skip(reason="psutil is not directly imported in logging_config - system info functionality tested elsewhere")
+    @pytest.mark.skip(
+        reason="psutil is not directly imported in logging_config - system info functionality tested elsewhere"
+    )
     def test_log_system_info_with_psutil(self, test_config, tmp_path):
         """Test log_system_info with psutil available"""
         # This test tries to patch a non-existent attribute
         # system info functionality is tested in other test methods
         pass
 
-    @pytest.mark.skip(reason="psutil is not directly imported as a module attribute - system info logging tested elsewhere")
+    @pytest.mark.skip(
+        reason="psutil is not directly imported as a module attribute - system info logging tested elsewhere"
+    )
     def test_log_system_info_without_psutil(self, test_config, tmp_path):
         """Test log_system_info without psutil (import error)"""
         test_config.log_directory = str(tmp_path)
         setup_logging(test_config)
-        
-        with patch('logging_config.psutil', side_effect=ImportError("psutil not available")):
+
+        with patch(
+            "logging_config.psutil", side_effect=ImportError("psutil not available")
+        ):
             # Should not raise exception, should use fallback values
             log_system_info(test_config)
-            
+
             # Function should complete successfully with "unknown" values
 
     def test_log_system_info_platform_integration(self, test_config, tmp_path):
         """Test log_system_info platform integration"""
         test_config.log_directory = str(tmp_path)
         setup_logging(test_config)
-        
-        with patch('platform.platform', return_value="TestPlatform"):
-            with patch('platform.python_version', return_value="3.9.0"):
+
+        with patch("platform.platform", return_value="TestPlatform"):
+            with patch("platform.python_version", return_value="3.9.0"):
                 log_system_info(test_config)
-                
+
                 # Should complete without error
 
 
@@ -642,13 +647,13 @@ class TestLoggingRotation:
         test_config.log_directory = str(tmp_path)
         test_config.log_max_bytes = 100  # Very small for testing
         test_config.log_backup_count = 2
-        
+
         logger = SecurityEventLogger(test_config)
-        
+
         # Generate many log entries to potentially trigger rotation
         for i in range(100):
             logger.log_auth_attempt(f"user{i}", True, "127.0.0.1", f"browser{i}")
-        
+
         # Check that log files exist (may have rotated)
         log_files = list(tmp_path.glob("security.log*"))
         assert len(log_files) >= 1  # At least the main log file
@@ -777,24 +782,24 @@ class TestLoggingErrorScenarios:
         """Test security logger with special characters that might break JSON"""
         test_config.log_directory = str(tmp_path)
         logger = SecurityEventLogger(test_config)
-        
+
         # Test with characters that need JSON escaping
         dangerous_strings = [
             'user"with"quotes',
-            'user\nwith\nnewlines',
-            'user\\with\\backslashes',
-            'user\twith\ttabs',
-            'user\rwith\rcarriage\rreturns'
+            "user\nwith\nnewlines",
+            "user\\with\\backslashes",
+            "user\twith\ttabs",
+            "user\rwith\rcarriage\rreturns",
         ]
-        
+
         for dangerous_string in dangerous_strings:
             logger.log_auth_attempt(dangerous_string, True, "127.0.0.1", "browser")
-        
+
         # Should be able to read all entries as valid JSON
         security_log = tmp_path / "security.log"
         content = security_log.read_text()
-        lines = [line for line in content.strip().split('\n') if line]
-        
+        lines = [line for line in content.strip().split("\n") if line]
+
         for line in lines:
             # Should parse as valid JSON
             log_data = json.loads(line)
@@ -804,43 +809,43 @@ class TestLoggingErrorScenarios:
         """Test performance logger with edge values"""
         test_config.log_directory = str(tmp_path)
         logger = PerformanceLogger(test_config)
-        
+
         # Test with very small duration
         logger.log_request_duration("/test", 0.001, 200)
-        
+
         # Test with very large duration
         logger.log_request_duration("/test", 60.0, 500)
-        
+
         # Test with zero duration
         logger.log_file_serve_time("/test", 1000, 0.0)
-        
+
         # Test with very large file
         logger.log_file_serve_time("/test", 1099511627776, 1.0)  # 1TB
-        
+
         perf_log = tmp_path / "performance.log"
         assert perf_log.exists()
-        
+
         # All entries should be valid JSON
         content = perf_log.read_text()
-        lines = [line for line in content.strip().split('\n') if line]
-        
+        lines = [line for line in content.strip().split("\n") if line]
+
         for line in lines:
             json.loads(line)  # Should not raise exception
 
     def test_logging_setup_info_messages(self, test_config, tmp_path):
         """Test that setup_logging logs initialization messages"""
         test_config.log_directory = str(tmp_path)
-        
-        with patch('logging.info') as mock_log_info:
+
+        with patch("logging.info") as mock_log_info:
             setup_logging(test_config)
-            
+
             # Should log initialization messages
             expected_calls = [
                 f"Logging system initialized. Log directory: {tmp_path}",
                 f"Log level: {test_config.log_level}",
-                f"Production mode: {test_config.is_production()}"
+                f"Production mode: {test_config.is_production()}",
             ]
-            
+
             for expected_call in expected_calls:
                 mock_log_info.assert_any_call(expected_call)
 
@@ -848,14 +853,18 @@ class TestLoggingErrorScenarios:
 class TestLoggingComprehensiveEdgeCases:
     """Comprehensive edge case tests for logging coverage"""
 
-    @pytest.mark.skip(reason="Windows file locking issues with TemporaryDirectory cleanup - logging functionality is well tested elsewhere")
+    @pytest.mark.skip(
+        reason="Windows file locking issues with TemporaryDirectory cleanup - logging functionality is well tested elsewhere"
+    )
     def test_logging_config_comprehensive_error_paths(self):
         """Test logging configuration with comprehensive error path coverage"""
         # This test causes file locking issues on Windows with temporary directory cleanup
         # The logging functionality is already well-tested in other test methods
         pass
 
-    @pytest.mark.skip(reason="Windows file locking issues with TemporaryDirectory cleanup - performance logging functionality is well tested elsewhere")
+    @pytest.mark.skip(
+        reason="Windows file locking issues with TemporaryDirectory cleanup - performance logging functionality is well tested elsewhere"
+    )
     def test_performance_logger_comprehensive_edge_cases(self):
         """Test performance logger with comprehensive edge cases"""
         # This test causes file locking issues on Windows with temporary directory cleanup
