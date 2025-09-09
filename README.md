@@ -48,7 +48,7 @@ A comprehensive, production-ready video streaming server that allows you to secu
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/video-streaming-server.git
+git clone https://github.com/tboy1337/video-streaming-server.git
 cd video-streaming-server
 
 # Create virtual environment (recommended)

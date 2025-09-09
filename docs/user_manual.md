@@ -36,7 +36,7 @@ The Video Streaming Server allows you to share your personal video library over 
 
 1. **Download the Application**
    ```bash
-   git clone https://github.com/your-repo/video-streaming-server.git
+   git clone https://github.com/tboy1337/video-streaming-server.git
    cd video-streaming-server
    ```
 
