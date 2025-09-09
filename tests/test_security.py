@@ -120,7 +120,10 @@ class TestAuthenticationSecurity:
         ).decode("utf-8")
 
         # Create two separate clients
-        with test_server.app.test_client() as client1, test_server.app.test_client() as client2:
+        with (
+            test_server.app.test_client() as client1,
+            test_server.app.test_client() as client2,
+        ):
             # Login with both clients
             response1 = client1.get(
                 "/", headers={"Authorization": f"Basic {credentials}"}

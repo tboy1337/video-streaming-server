@@ -14,8 +14,13 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from config import ServerConfig
-from logging_config import (PerformanceLogger, SecurityEventLogger,
-                            get_request_logger, log_system_info, setup_logging)
+from logging_config import (
+    PerformanceLogger,
+    SecurityEventLogger,
+    get_request_logger,
+    log_system_info,
+    setup_logging,
+)
 
 
 class TestSecurityEventLogger:
@@ -610,7 +615,7 @@ class TestUtilityFunctionsComprehensive:
         setup_logging(test_config)
 
         with patch("platform.platform", return_value="TestPlatform"):
-            with patch("platform.python_version", return_value="3.9.0"):
+            with patch("platform.python_version", return_value="3.13.0"):
                 log_system_info(test_config)
 
                 # Should complete without error
