@@ -1,24 +1,45 @@
-from werkzeug.security import generate_password_hash
+"""
+Password Generation Utility
+---------------------------
+Utility script for generating secure passwords and their corresponding
+Werkzeug password hashes for the Video Streaming Server.
+
+Author: Assistant
+License: See LICENSE.txt
+"""
+
 import secrets
 import string
+
+from werkzeug.security import generate_password_hash
+
 
 def generate_strong_password(length=35):
     """Generate a strong random password of specified length"""
     alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
-        password = ''.join(secrets.choice(alphabet) for i in range(length))
-        if (any(c.islower() for c in password)
-                and any(c.isupper() for c in password)
-                and sum(c.isdigit() for c in password) >= 3
-                and sum(c in string.punctuation for c in password) >= 2):
+        password = "".join(secrets.choice(alphabet) for i in range(length))
+        if (
+            any(c.islower() for c in password)
+            and any(c.isupper() for c in password)
+            and sum(c.isdigit() for c in password) >= 3
+            and sum(c in string.punctuation for c in password) >= 2
+        ):
             return password
 
+
 def main():
+    """
+    Main function to handle password generation and hashing workflow.
+
+    Provides an interactive interface for users to either generate a new
+    password or hash their own password for use with the streaming server.
+    """
     print("Video Streaming Server - Password Setup")
     print("-" * 50)
-    
-    use_generated = input("Generate a strong password? (y/n): ").strip().lower() == 'y'
-    
+
+    use_generated = input("Generate a strong password? (y/n): ").strip().lower() == "y"
+
     if use_generated:
         password = generate_strong_password()
         print(f"\nGenerated password: {password}")
@@ -29,23 +50,24 @@ def main():
             if len(password) < 8:
                 print("Password is too short! Use at least 8 characters.")
                 continue
-                
+
             confirm = input("Confirm password: ")
             if password != confirm:
                 print("Passwords don't match! Try again.")
                 continue
             break
-    
+
     password_hash = generate_password_hash(password)
     print("\nPassword Hash (copy this to your streaming_server.py file):")
     print(password_hash)
-    
+
     print("\nInstructions:")
     print("1. Copy the password hash above")
     print("2. Open streaming_server.py")
     print("3. Replace 'your-generated-hash-goes-here' with the copied hash")
     print("4. Save the file and run with: python streaming_server.py")
     print("\nYou'll use the username 'friend' and your chosen password to log in")
+
 
 if __name__ == "__main__":
     main()

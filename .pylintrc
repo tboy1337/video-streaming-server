@@ -71,7 +71,7 @@ unsafe-load-any-extension=no
 [MESSAGES CONTROL]
 
 # Only show warnings with the listed confidence levels
-confidence=HIGH,MEDIUM
+confidence=HIGH,INFERENCE
 
 # Disable the message, report, category or checker with the given id(s)
 disable=raw-checker-failed,
@@ -464,4 +464,4 @@ preferred-modules=
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when caught
-overgeneral-exceptions=BaseException,Exception
+overgeneral-exceptions=builtins.BaseException,builtins.Exception
