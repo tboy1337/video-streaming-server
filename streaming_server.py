@@ -16,7 +16,7 @@ import time
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import unquote
 
 import click
@@ -42,6 +42,7 @@ class VideoStreamingServer:
         self.app = self._create_app()
         self.security_logger: Optional[SecurityEventLogger] = None
         self.performance_logger: Optional[PerformanceLogger] = None
+        self.limiter: Optional[Limiter] = None
         self._setup_logging()
         self._setup_rate_limiting()
         self._register_routes()
@@ -117,7 +118,7 @@ class VideoStreamingServer:
 
         # Health check endpoint
         @self.app.route("/health")
-        def health_check() -> Response:
+        def health_check() -> Union[Response, Tuple[Response, int]]:
             """Health check endpoint for monitoring"""
             health_data = {
                 "status": "healthy",
@@ -148,7 +149,7 @@ class VideoStreamingServer:
         # Main application routes
         @self.app.route("/")
         @self.app.route("/<path:subpath>")
-        def index(subpath: str = "") -> Union[str, Tuple[str, int]]:
+        def index(subpath: str = "") -> Union[str, Tuple[str, int], Response]:
             """Handle directory listing and video playback pages"""
             return self._handle_index_request(subpath)
 
@@ -158,7 +159,7 @@ class VideoStreamingServer:
             return self._handle_stream_request(video_path)
 
         @self.app.route("/api/files")
-        def api_files() -> Response:
+        def api_files() -> Union[Response, Tuple[Response, int]]:
             """API endpoint for file listing"""
             return self._handle_api_files_request()
 
@@ -166,13 +167,13 @@ class VideoStreamingServer:
         """Register custom error handlers"""
 
         @self.app.errorhandler(400)
-        def bad_request(error) -> Tuple[str, int]:
+        def bad_request(error: Any) -> Tuple[str, int]:
             """Handle bad request errors"""
             self.app.logger.warning(f"Bad request from {request.remote_addr}: {error}")
             return "Bad Request - Invalid parameters", 400
 
         @self.app.errorhandler(401)
-        def unauthorized(_error) -> Tuple[Response, int]:
+        def unauthorized(_error: Any) -> Tuple[Response, int]:
             """Handle unauthorized access"""
             return (
                 Response(
@@ -184,7 +185,7 @@ class VideoStreamingServer:
             )
 
         @self.app.errorhandler(403)
-        def forbidden(_error) -> Tuple[str, int]:
+        def forbidden(_error: Any) -> Tuple[str, int]:
             """Handle forbidden access"""
             if self.security_logger:
                 self.security_logger.log_security_violation(
@@ -195,17 +196,17 @@ class VideoStreamingServer:
             return "Access Forbidden", 403
 
         @self.app.errorhandler(404)
-        def not_found(_error) -> Tuple[str, int]:
+        def not_found(_error: Any) -> Tuple[str, int]:
             """Handle not found errors"""
             return "Resource Not Found", 404
 
         @self.app.errorhandler(413)
-        def request_entity_too_large(_error) -> Tuple[str, int]:
+        def request_entity_too_large(_error: Any) -> Tuple[str, int]:
             """Handle file too large errors"""
             return "File Too Large", 413
 
         @self.app.errorhandler(429)
-        def rate_limit_handler(_error) -> Tuple[str, int]:
+        def rate_limit_handler(_error: Any) -> Tuple[str, int]:
             """Handle rate limit exceeded"""
             if self.security_logger:
                 self.security_logger.log_rate_limit_exceeded(
@@ -214,12 +215,12 @@ class VideoStreamingServer:
             return "Rate Limit Exceeded - Too Many Requests", 429
 
         @self.app.errorhandler(500)
-        def internal_error(error) -> Tuple[str, int]:
+        def internal_error(error: Any) -> Tuple[str, int]:
             """Handle internal server errors"""
             self.app.logger.error(f"Server error: {str(error)}", exc_info=True)
             return "Internal Server Error", 500
 
-    def check_auth(self, username: str, password: str) -> bool:
+    def check_auth(self, username: Optional[str], password: Optional[str]) -> bool:
         """Verify username and password against stored credentials"""
         if not username or not password:
             if self.security_logger:
@@ -245,11 +246,11 @@ class VideoStreamingServer:
 
         return valid
 
-    def requires_auth(self, f):
+    def requires_auth(self, f: Callable[..., Any]) -> Callable[..., Any]:
         """Decorator to require authentication"""
 
         @wraps(f)
-        def decorated(*args, **kwargs):
+        def decorated(*args: Any, **kwargs: Any) -> Any:
             # Check session auth first
             current_time = time.time()
             if session.get("authenticated"):
@@ -266,7 +267,7 @@ class VideoStreamingServer:
 
             # Fall back to HTTP Basic Auth
             auth = request.authorization
-            if not auth or not self.check_auth(auth.username, auth.password):
+            if not auth or not auth.username or not auth.password or not self.check_auth(auth.username, auth.password):
                 return Response(
                     "Authentication Required",
                     401,
@@ -309,7 +310,7 @@ class VideoStreamingServer:
             video_dir = Path(self.config.video_directory).absolute()
 
             # Normalize paths to handle . and .. components without resolving symlinks
-            full_path_parts = []
+            full_path_parts: List[str] = []
             for part in full_path.parts:
                 if part == "..":
                     if full_path_parts:
@@ -317,7 +318,7 @@ class VideoStreamingServer:
                 elif part != ".":
                     full_path_parts.append(part)
 
-            video_dir_parts = []
+            video_dir_parts: List[str] = []
             for part in video_dir.parts:
                 if part == "..":
                     if video_dir_parts:
@@ -371,7 +372,7 @@ class VideoStreamingServer:
 
         return crumbs
 
-    def _handle_index_request(self, subpath: str) -> Union[str, Tuple[str, int]]:
+    def _handle_index_request(self, subpath: str) -> Union[str, Tuple[str, int], Response]:
         """Handle index page requests with authentication"""
         if not self._check_authentication():
             return Response(
@@ -511,7 +512,7 @@ class VideoStreamingServer:
             self.app.logger.error(f"Error streaming file {video_path}: {str(e)}")
             return "Error streaming file", 500
 
-    def _handle_api_files_request(self) -> Response:
+    def _handle_api_files_request(self) -> Union[Response, Tuple[Response, int]]:
         """Handle API files listing request"""
         if not self._check_authentication():
             return jsonify({"error": "Authentication required"}), 401
@@ -573,7 +574,7 @@ class VideoStreamingServer:
 
         # Check HTTP Basic Auth
         auth = request.authorization
-        if auth and self.check_auth(auth.username, auth.password):
+        if auth and auth.username and auth.password and self.check_auth(auth.username, auth.password):
             # Set session on successful auth
             session["authenticated"] = True
             session["username"] = auth.username

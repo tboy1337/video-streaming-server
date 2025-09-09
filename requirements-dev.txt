@@ -22,8 +22,10 @@ pytest-httpx
 
 # Code Quality and Linting
 pylint
+mypy
 black
 isort
 
-# Additional Development Tools
-# mypy  # Uncomment if you want static type checking
+# Type Stubs for External Libraries
+types-psutil
+types-waitress

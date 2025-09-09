@@ -65,7 +65,7 @@ class ServerConfig:
     )
 
     # File Settings
-    allowed_extensions: set = field(
+    allowed_extensions: set[str] = field(
         default_factory=lambda: (
             set(
                 ext.strip()
@@ -146,7 +146,7 @@ class ServerConfig:
         )
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate configuration after initialization"""
         self.validate_config()
 

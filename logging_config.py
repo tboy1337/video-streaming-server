@@ -27,7 +27,7 @@ class SecurityEventLogger:
         self.logger = logging.getLogger("security")
         self._setup_security_logger()
 
-    def _setup_security_logger(self):
+    def _setup_security_logger(self) -> None:
         """Set up dedicated security event logging"""
         # Create security log file handler
         security_log_file = Path(self.config.log_directory) / "security.log"
@@ -50,7 +50,7 @@ class SecurityEventLogger:
 
     def log_auth_attempt(
         self, username: str, success: bool, ip_address: str, user_agent: str = ""
-    ):
+    ) -> None:
         """Log authentication attempts"""
         event_data = {
             "event_type": "authentication",
@@ -66,7 +66,7 @@ class SecurityEventLogger:
 
     def log_file_access(
         self, file_path: str, ip_address: str, success: bool, user: str = ""
-    ):
+    ) -> None:
         """Log file access attempts"""
         event_data = {
             "event_type": "file_access",
@@ -82,7 +82,7 @@ class SecurityEventLogger:
 
     def log_security_violation(
         self, violation_type: str, details: str, ip_address: str
-    ):
+    ) -> None:
         """Log security violations"""
         event_data = {
             "event_type": "security_violation",
@@ -94,7 +94,7 @@ class SecurityEventLogger:
 
         self.logger.error(json.dumps(event_data))
 
-    def log_rate_limit_exceeded(self, ip_address: str, endpoint: str):
+    def log_rate_limit_exceeded(self, ip_address: str, endpoint: str) -> None:
         """Log rate limit violations"""
         event_data = {
             "event_type": "rate_limit_exceeded",
@@ -114,7 +114,7 @@ class PerformanceLogger:
         self.logger = logging.getLogger("performance")
         self._setup_performance_logger()
 
-    def _setup_performance_logger(self):
+    def _setup_performance_logger(self) -> None:
         """Set up performance metrics logging"""
         perf_log_file = Path(self.config.log_directory) / "performance.log"
         perf_handler = logging.handlers.RotatingFileHandler(
@@ -132,7 +132,7 @@ class PerformanceLogger:
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False
 
-    def log_request_duration(self, endpoint: str, duration: float, status_code: int):
+    def log_request_duration(self, endpoint: str, duration: float, status_code: int) -> None:
         """Log request duration metrics"""
         metric_data = {
             "type": "request_duration",
@@ -144,7 +144,7 @@ class PerformanceLogger:
 
         self.logger.info(json.dumps(metric_data))
 
-    def log_file_serve_time(self, file_path: str, file_size: int, duration: float):
+    def log_file_serve_time(self, file_path: str, file_size: int, duration: float) -> None:
         """Log file serving performance"""
         metric_data = {
             "type": "file_serve",
