@@ -295,8 +295,12 @@ class TestPathSecurity:
             # Test with various malicious paths
             dangerous_paths = [
                 "../../../etc/passwd",
-                "..\\..\\windows\\system32",
+                "..\\..\\windows\\system32", 
                 "path//with//double//slashes",
+                "/absolute/path/attack",
+                "path/../../../sensitive/file",
+                "path/./../../etc/hosts",
+                "path\\..\\.\\..\\windows\\system32",
                 "path/../traversal"
             ]
             
@@ -528,6 +532,21 @@ class TestErrorHandling:
 
         assert response.status_code == 400
         assert b"Not a video file" in response.data
+
+    def test_session_timeout_handling(self, test_server):
+        """Test session timeout and clearing logic"""
+        with test_server.app.test_client() as client:
+            with client.session_transaction() as sess:
+                # Set up an expired session
+                sess['authenticated'] = True
+                sess['last_activity'] = time.time() - (test_server.config.session_timeout + 100)
+                sess['username'] = 'testuser'
+            
+            # Make a request that should trigger session timeout
+            response = client.get('/')
+            
+            # Session should be cleared and user redirected to auth
+            assert response.status_code == 401
 
 
 class TestMaxFileSizeHandling:
@@ -842,3 +861,26 @@ class TestRequestLogging:
 
         # Should be blocked and logged
         assert response.status_code == 401  # Unauthorized due to no auth
+
+    def test_after_request_performance_logging(self, test_server):
+        """Test performance logging in after_request handler"""
+        from flask import g
+        
+        # Mock the performance logger
+        test_server.performance_logger = MagicMock()
+        
+        with test_server.app.test_client() as client:
+            with test_server.app.test_request_context('/test'):
+                # Set up request context with start_time (this triggers performance logging)
+                g.start_time = time.time() - 0.1  # 100ms ago
+                g.request_id = "test_request_123"
+                
+                # Create and process a response
+                response = test_server.app.make_response("test response")
+                response.status_code = 200
+                
+                # Process the response (triggers after_request)
+                processed_response = test_server.app.process_response(response)
+                
+                # Verify performance logging was called
+                test_server.performance_logger.log_request_duration.assert_called_once()

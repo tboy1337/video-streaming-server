@@ -751,7 +751,7 @@ class TestLoggingErrorHandling:
         logger = SecurityEventLogger(test_config)
 
         # Test with unicode characters
-        logger.log_auth_attempt("ç"¨æˆ·", True, "127.0.0.1", "Browser with ç‰¹æ®Šå­—ç¬¦")
+        logger.log_auth_attempt("用户", True, "127.0.0.1", "Browser with 特殊字符")
 
         # Test with special characters that might break JSON
         logger.log_security_violation(
