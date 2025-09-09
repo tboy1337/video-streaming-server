@@ -1,4 +1,4 @@
-﻿"""
+"""
 MediaRelay
 ----------
 Production-ready video streaming server with comprehensive security,
@@ -787,7 +787,7 @@ class MediaRelayServer:
     <div class="container">
         {% if video_file %}
             <div class="header">
-                <a href="{{ parent_path }}" class="back-link">â† Back to directory</a>
+                <a href="{{ parent_path }}" class="back-link">&larr; Back to directory</a>
                 <h1>{{ video_file }}</h1>
             </div>
 
@@ -817,7 +817,7 @@ class MediaRelayServer:
                 {% if not is_root %}
                     <li>
                         <a href="{{ parent_path }}" class="file-item">
-                            <span class="file-icon folder">ðŸ“</span>
+                            <span class="file-icon folder">&#x1F4C1;</span>
                             <div class="file-info">
                                 <div class="file-name">.. (Up to parent directory)</div>
                             </div>
@@ -829,7 +829,7 @@ class MediaRelayServer:
                     <li>
                         <a href="{{ item.path }}" class="file-item">
                             <span class="file-icon {% if item.is_dir %}folder{% else %}video-file{% endif %}">
-                                {% if item.is_dir %}ðŸ“{% else %}ðŸŽ¬{% endif %}
+                                {% if item.is_dir %}&#x1F4C1;{% else %}&#x1F3AC;{% endif %}
                             </span>
                             <div class="file-info">
                                 <div class="file-name">{{ item.name }}</div>
