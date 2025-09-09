@@ -25,6 +25,7 @@ class SecurityEventLogger:
     def __init__(self, config: ServerConfig):
         self.config = config
         self.logger = logging.getLogger("security")
+        self.handlers = []  # Track handlers for cleanup
         self._setup_security_logger()
 
     def _setup_security_logger(self) -> None:
@@ -45,6 +46,7 @@ class SecurityEventLogger:
         security_handler.setFormatter(security_formatter)
 
         self.logger.addHandler(security_handler)
+        self.handlers.append(security_handler)  # Track for cleanup
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False  # Don't propagate to root logger
 
@@ -105,6 +107,13 @@ class SecurityEventLogger:
 
         self.logger.warning(json.dumps(event_data))
 
+    def cleanup(self) -> None:
+        """Clean up logger resources"""
+        for handler in self.handlers:
+            handler.close()
+            self.logger.removeHandler(handler)
+        self.handlers.clear()
+
 
 class PerformanceLogger:
     """Logger for performance metrics and monitoring"""
@@ -112,6 +121,7 @@ class PerformanceLogger:
     def __init__(self, config: ServerConfig):
         self.config = config
         self.logger = logging.getLogger("performance")
+        self.handlers = []  # Track handlers for cleanup
         self._setup_performance_logger()
 
     def _setup_performance_logger(self) -> None:
@@ -129,6 +139,7 @@ class PerformanceLogger:
         perf_handler.setFormatter(perf_formatter)
 
         self.logger.addHandler(perf_handler)
+        self.handlers.append(perf_handler)  # Track for cleanup
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False
 
@@ -162,6 +173,13 @@ class PerformanceLogger:
         }
 
         self.logger.info(json.dumps(metric_data))
+
+    def cleanup(self) -> None:
+        """Clean up logger resources"""
+        for handler in self.handlers:
+            handler.close()
+            self.logger.removeHandler(handler)
+        self.handlers.clear()
 
 
 def setup_logging(config: ServerConfig) -> Dict[str, Any]:

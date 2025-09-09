@@ -19,7 +19,9 @@ from streaming_server import MediaRelayServer
 class TestAuthenticationSecurity:
     """Test cases for authentication security"""
 
-    def test_brute_force_protection_logging(self, test_server, test_config):
+    def test_brute_force_protection_logging(
+        self, test_server, test_config
+    ):  # pylint: disable=unused-argument
         """Test that brute force attempts are logged"""
         failed_attempts = []
 
@@ -167,7 +169,9 @@ class TestAuthorizationSecurity:
             response = test_client.get("/", headers={"Authorization": auth_header})
             assert response.status_code == 401
 
-    def test_file_access_authorization(self, authenticated_client, temp_video_dir):
+    def test_file_access_authorization(
+        self, authenticated_client, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test file access authorization"""
         # Should be able to access files in video directory
         response = authenticated_client.get("/stream/test_video.mp4")
@@ -388,7 +392,6 @@ class TestDenialOfServiceProtection:
     def test_concurrent_auth_requests(self, test_server, test_config):
         """Test server stability under concurrent authentication requests"""
         import threading
-        import time
 
         results = []
         credentials = base64.b64encode(
@@ -402,7 +405,7 @@ class TestDenialOfServiceProtection:
                         "/", headers={"Authorization": f"Basic {credentials}"}
                     )
                     results.append(response.status_code)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 results.append(f"Error: {str(e)}")
 
         # Create multiple concurrent requests
@@ -594,7 +597,6 @@ class TestSecurityPerformance:
     )
     def test_authentication_performance(self, test_server, test_config):
         """Test authentication performance under load"""
-        import time
 
         # Test authentication speed
         start_time = time.time()
@@ -613,7 +615,6 @@ class TestSecurityPerformance:
     )
     def test_path_validation_performance(self, test_server):
         """Test path validation performance"""
-        import time
 
         test_paths = [
             "valid/path/file.mp4",
@@ -639,7 +640,6 @@ class TestSecurityPerformance:
     )
     def test_security_logging_performance(self, test_server, tmp_path):
         """Test security logging performance"""
-        import time
 
         test_server.config.log_directory = str(tmp_path)
 

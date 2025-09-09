@@ -198,8 +198,6 @@ class TestAuthentication:
 
         with test_server.app.test_request_context():
             # Mock session data directly in g or flask context
-            from flask import session
-
             with test_server.app.test_request_context():
                 session["authenticated"] = True
                 session["last_activity"] = time.time()
@@ -265,13 +263,17 @@ class TestPathSecurity:
             expected_path = temp_video_dir / "test_video.mp4"
             assert safe_path == expected_path
 
-    def test_get_safe_path_empty(self, test_server, temp_video_dir):
+    def test_get_safe_path_empty(
+        self, test_server, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test safe path handling with empty path"""
         with test_server.app.test_request_context():
             safe_path = test_server.get_safe_path("")
             assert safe_path == Path(test_server.config.video_directory)
 
-    def test_get_safe_path_none(self, test_server, temp_video_dir):
+    def test_get_safe_path_none(
+        self, test_server, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test safe path handling with None path"""
         with test_server.app.test_request_context():
             safe_path = test_server.get_safe_path(None)
@@ -349,7 +351,9 @@ class TestDirectoryListing:
         assert any(c["name"] == "Home" for c in crumbs)
         assert any(c["name"] == "nested" for c in crumbs)
 
-    def test_directory_listing_with_auth(self, authenticated_client, temp_video_dir):
+    def test_directory_listing_with_auth(
+        self, authenticated_client, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test directory listing with authentication"""
         response = authenticated_client.get("/")
 
@@ -560,7 +564,9 @@ class TestErrorHandling:
 class TestMaxFileSizeHandling:
     """Test cases for max file size handling"""
 
-    def test_max_file_size_enabled(self, temp_video_dir):
+    def test_max_file_size_enabled(
+        self, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test Flask app with file size limit enabled"""
         with tempfile.TemporaryDirectory() as temp_dir:
             os.environ["VIDEO_SERVER_MAX_FILE_SIZE"] = "1073741824"  # 1GB
@@ -572,7 +578,9 @@ class TestMaxFileSizeHandling:
 
             assert server.app.config["MAX_CONTENT_LENGTH"] == 1073741824
 
-    def test_max_file_size_disabled_zero(self, temp_video_dir):
+    def test_max_file_size_disabled_zero(
+        self, temp_video_dir
+    ):  # pylint: disable=unused-argument
         """Test Flask app with file size limit disabled (zero)"""
         with tempfile.TemporaryDirectory() as temp_dir:
             os.environ["VIDEO_SERVER_MAX_FILE_SIZE"] = "0"

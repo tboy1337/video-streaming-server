@@ -191,7 +191,7 @@ class TestLoggingErrorHandling:
         except PermissionError:
             # Should handle appropriately
             pass
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             # Or other appropriate error handling
             pass
 

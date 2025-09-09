@@ -960,8 +960,6 @@ class TestConfigComprehensiveEdgeCases:
 
         # Test environment variable fallback in _get_default_video_directory
         with patch("pathlib.Path.home", side_effect=RuntimeError("No home")):
-            from config import _get_default_video_directory
-
             default_dir = _get_default_video_directory()
             assert default_dir == "./videos"
 

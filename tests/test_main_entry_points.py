@@ -21,7 +21,10 @@ class TestStreamingServerMain:
     @patch("streaming_server.load_config")
     @patch("streaming_server.MediaRelayServer")
     def test_main_function_basic_flow(
-        self, mock_server_class, mock_load_config, mock_click
+        self,
+        mock_server_class,
+        mock_load_config,
+        mock_click,  # pylint: disable=unused-argument
     ):
         """Test main function basic execution flow"""
         # Mock configuration
@@ -113,7 +116,7 @@ class TestLoggingMainEntryPoint:
             try:
                 # The logging main should set up logging and run tests
                 pass  # Test would run the actual main block
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 pass  # Expected as it's testing mock setup
 
 
@@ -153,7 +156,9 @@ class TestServerStartupAndShutdown:
 
     @patch("streaming_server.MediaRelayServer")
     @patch("streaming_server.load_config")
-    def test_configuration_error_handling(self, mock_load_config, mock_server_class):
+    def test_configuration_error_handling(
+        self, mock_load_config, mock_server_class
+    ):  # pylint: disable=unused-argument
         """Test configuration error handling"""
         mock_load_config.side_effect = ValueError("Configuration error")
 
@@ -195,7 +200,9 @@ class TestCLIArgumentHandling:
 
     @patch("streaming_server.load_config")
     @patch("streaming_server.MediaRelayServer")
-    def test_host_override(self, mock_server_class, mock_load_config):
+    def test_host_override(
+        self, mock_server_class, mock_load_config
+    ):  # pylint: disable=unused-argument
         """Test host command line override"""
         mock_config = MagicMock()
         mock_config.host = "localhost"
@@ -207,7 +214,9 @@ class TestCLIArgumentHandling:
 
     @patch("streaming_server.load_config")
     @patch("streaming_server.MediaRelayServer")
-    def test_port_override(self, mock_server_class, mock_load_config):
+    def test_port_override(
+        self, mock_server_class, mock_load_config
+    ):  # pylint: disable=unused-argument
         """Test port command line override"""
         mock_config = MagicMock()
         mock_config.port = 5000
@@ -218,7 +227,9 @@ class TestCLIArgumentHandling:
 
     @patch("streaming_server.load_config")
     @patch("streaming_server.MediaRelayServer")
-    def test_debug_override(self, mock_server_class, mock_load_config):
+    def test_debug_override(
+        self, mock_server_class, mock_load_config
+    ):  # pylint: disable=unused-argument
         """Test debug command line override"""
         mock_config = MagicMock()
         mock_config.debug = False
@@ -233,45 +244,38 @@ class TestMainFunctionComprehensiveEdgeCases:
 
     def test_main_comprehensive_value_error_handling(self):
         """Test main function with ValueError coverage"""
-        from streaming_server import main as streaming_main
-
         with patch(
             "streaming_server.load_config", side_effect=ValueError("Config error")
         ):
             with patch("builtins.print") as mock_print:
                 with patch("sys.exit") as mock_exit:
-                    streaming_main()
+                    main()
                     assert mock_exit.called  # Just verify exit was called at least once
                     mock_print.assert_called()
 
     def test_main_comprehensive_keyboard_interrupt_handling(self):
         """Test main function with KeyboardInterrupt coverage"""
-        from streaming_server import main as streaming_main
-
         with patch("streaming_server.MediaRelayServer") as mock_server:
             mock_server.return_value.run.side_effect = KeyboardInterrupt
             with patch("builtins.print") as mock_print:
                 with patch("sys.exit"):  # Prevent actual exit
-                    streaming_main()
+                    main()
                     mock_print.assert_called_with("\nShutdown complete")
 
     def test_main_comprehensive_general_exception_handling(self):
         """Test main function with general exception coverage"""
-        from streaming_server import main as streaming_main
 
         with patch("streaming_server.MediaRelayServer") as mock_server:
             mock_server.return_value.run.side_effect = RuntimeError("Server error")
             with patch("builtins.print") as mock_print:
                 with patch("sys.exit") as mock_exit:
-                    streaming_main()
+                    main()
                     assert mock_exit.called  # Just verify exit was called at least once
                     mock_print.assert_called()
 
     def test_main_comprehensive_generate_config_path(self):
         """Test main function with generate_config option coverage"""
         from click.testing import CliRunner
-
-        from streaming_server import main
 
         with patch("config.create_sample_env_file") as mock_create:
             runner = CliRunner()

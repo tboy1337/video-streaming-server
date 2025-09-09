@@ -53,7 +53,7 @@ def test_configuration():
 
             return True
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"  âŒ Configuration error: {e}")
         return False
 
@@ -95,7 +95,7 @@ def test_logging():
 
             return True
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"  âŒ Logging error: {e}")
         traceback.print_exc()
         return False
@@ -139,7 +139,7 @@ def test_server_initialization():
 
         return True
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"  âŒ Server initialization error: {e}")
         traceback.print_exc()
         return False
@@ -157,7 +157,7 @@ def test_server_initialization():
                 import shutil
 
                 shutil.rmtree(temp_dir, ignore_errors=True)
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 pass  # Ignore cleanup errors in validation
 
 
@@ -181,7 +181,7 @@ def test_password_generation():
 
         return True
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"  âŒ Password generation error: {e}")
         return False
 
@@ -292,7 +292,7 @@ def main():
                 print(f"âœ… {test_name} - PASSED")
             else:
                 print(f"âŒ {test_name} - FAILED")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"âŒ {test_name} - ERROR: {e}")
             traceback.print_exc()
 
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n\nâš ï¸ Validation interrupted by user")
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"\n\nðŸ’¥ Unexpected error during validation: {e}")
         traceback.print_exc()
         sys.exit(1)
