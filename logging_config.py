@@ -11,7 +11,7 @@ import logging.handlers
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import colorlog
 import structlog
@@ -25,7 +25,7 @@ class SecurityEventLogger:
     def __init__(self, config: ServerConfig):
         self.config = config
         self.logger = logging.getLogger("security")
-        self.handlers = []  # Track handlers for cleanup
+        self.handlers: List[logging.Handler] = []  # Track handlers for cleanup
         self._setup_security_logger()
 
     def _setup_security_logger(self) -> None:
@@ -121,7 +121,7 @@ class PerformanceLogger:
     def __init__(self, config: ServerConfig):
         self.config = config
         self.logger = logging.getLogger("performance")
-        self.handlers = []  # Track handlers for cleanup
+        self.handlers: List[logging.Handler] = []  # Track handlers for cleanup
         self._setup_performance_logger()
 
     def _setup_performance_logger(self) -> None:
