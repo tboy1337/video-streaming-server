@@ -18,15 +18,15 @@ import pytest
 from flask import session
 
 from config import ServerConfig
-from streaming_server import VideoStreamingServer, main
+from streaming_server import MediaRelayServer, main
 
 
-class TestVideoStreamingServer:
-    """Test cases for VideoStreamingServer initialization and configuration"""
+class TestMediaRelayServer:
+    """Test cases for MediaRelayServer initialization and configuration"""
 
     def test_server_initialization(self, test_config):
         """Test server initialization with configuration"""
-        server = VideoStreamingServer(test_config)
+        server = MediaRelayServer(test_config)
 
         assert server.config == test_config
         assert server.app is not None
@@ -60,7 +60,7 @@ class TestVideoStreamingServer:
     def test_rate_limiting_enabled(self, test_config):
         """Test rate limiting when enabled"""
         test_config.rate_limit_enabled = True
-        server = VideoStreamingServer(test_config)
+        server = MediaRelayServer(test_config)
 
         assert hasattr(server, "limiter")
         assert server.limiter is not None
@@ -68,13 +68,13 @@ class TestVideoStreamingServer:
     def test_rate_limiting_disabled(self, test_config):
         """Test rate limiting when disabled"""
         test_config.rate_limit_enabled = False
-        server = VideoStreamingServer(test_config)
+        server = MediaRelayServer(test_config)
 
         assert server.limiter is None
 
 
-class TestVideoStreamingServerComprehensive:
-    """Comprehensive tests for complete coverage of VideoStreamingServer"""
+class TestMediaRelayServerComprehensive:
+    """Comprehensive tests for complete coverage of MediaRelayServer"""
 
     def test_server_initialization_with_all_features(self):
         """Test server initialization with all features enabled"""
@@ -86,7 +86,7 @@ class TestVideoStreamingServerComprehensive:
                 debug=True,
             )
 
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             # Test that all components are initialized
             assert server.config == config
@@ -104,7 +104,7 @@ class TestVideoStreamingServerComprehensive:
                 rate_limit_enabled=False,
             )
 
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
             assert server.limiter is None
 
     def test_get_html_template_method(self, test_server):
@@ -237,7 +237,7 @@ class TestAuthentication:
                 video_directory=temp_dir, password_hash=password_hash, username="admin"
             )
 
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             # Need request context for check_auth to work
             with server.app.test_request_context():
@@ -568,7 +568,7 @@ class TestMaxFileSizeHandling:
             os.environ["VIDEO_SERVER_DIRECTORY"] = temp_dir
 
             config = ServerConfig()
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             assert server.app.config["MAX_CONTENT_LENGTH"] == 1073741824
 
@@ -580,7 +580,7 @@ class TestMaxFileSizeHandling:
             os.environ["VIDEO_SERVER_DIRECTORY"] = temp_dir
 
             config = ServerConfig()
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             assert server.app.config["MAX_CONTENT_LENGTH"] is None
 
@@ -697,7 +697,7 @@ class TestFileTypeHandling:
 class TestMainFunctionComprehensive:
     """Comprehensive tests for the main function"""
 
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("streaming_server.load_config")
     def test_main_function_normal_operation(self, mock_load_config, mock_server_class):
         """Test main function normal operation"""
@@ -728,7 +728,7 @@ class TestMainFunctionComprehensive:
         mock_print.assert_any_call("Configuration Error: Configuration error")
 
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("builtins.print")
     def test_main_function_keyboard_interrupt(
         self, mock_print, mock_server_class, mock_load_config
@@ -745,7 +745,7 @@ class TestMainFunctionComprehensive:
         mock_print.assert_any_call("\nShutdown complete")
 
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("builtins.print")
     def test_main_function_generic_exception(
         self, mock_print, mock_server_class, mock_load_config
@@ -779,7 +779,7 @@ class TestServerRunMethod:
                 port=5000,
                 threads=4,
             )
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             server.run()
 
@@ -802,7 +802,7 @@ class TestServerRunMethod:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             config = ServerConfig(video_directory=temp_dir, password_hash="test_hash")
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             server.run()  # Should not raise exception
 
@@ -815,7 +815,7 @@ class TestServerRunMethod:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             config = ServerConfig(video_directory=temp_dir, password_hash="test_hash")
-            server = VideoStreamingServer(config)
+            server = MediaRelayServer(config)
 
             with pytest.raises(RuntimeError):
                 server.run()

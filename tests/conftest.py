@@ -14,7 +14,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from config import ServerConfig
-from streaming_server import VideoStreamingServer
+from streaming_server import MediaRelayServer
 
 
 @pytest.fixture(scope="session")
@@ -69,14 +69,14 @@ def test_config(temp_video_dir: Path, temp_log_dir: Path) -> ServerConfig:
 
 
 @pytest.fixture
-def test_server(test_config: ServerConfig) -> VideoStreamingServer:
+def test_server(test_config: ServerConfig) -> MediaRelayServer:
     """Create a test server instance"""
-    server = VideoStreamingServer(test_config)
+    server = MediaRelayServer(test_config)
     return server
 
 
 @pytest.fixture
-def test_client(test_server: VideoStreamingServer):
+def test_client(test_server: MediaRelayServer):
     """Create a test client for the Flask app"""
     test_server.app.config["TESTING"] = True
     with test_server.app.test_client() as client:

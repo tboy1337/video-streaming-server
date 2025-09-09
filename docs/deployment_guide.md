@@ -1,4 +1,4 @@
-# Video Streaming Server - Deployment Guide
+# MediaRelay - Deployment Guide
 
 ## Overview
 
@@ -27,8 +27,8 @@ This guide covers production deployment of the Video Streaming Server with compr
 
 ```bash
 # Clone the repository
-git clone https://github.com/tboy1337/video-streaming-server.git
-cd video-streaming-server
+git clone https://github.com/tboy1337/MediaRelay.git
+cd MediaRelay
 
 # Create virtual environment (recommended)
 python -m venv venv
@@ -169,21 +169,21 @@ server {
 
 #### Systemd Service (Linux)
 
-Create `/etc/systemd/system/video-streaming-server.service`:
+Create `/etc/systemd/system/mediarelay.service`:
 
 ```ini
 [Unit]
-Description=Video Streaming Server
+Description=MediaRelay
 After=network.target
 
 [Service]
 Type=simple
 User=your-user
 Group=your-group
-WorkingDirectory=/path/to/video-streaming-server
-Environment=PATH=/path/to/video-streaming-server/venv/bin
-EnvironmentFile=/path/to/video-streaming-server/.env
-ExecStart=/path/to/video-streaming-server/venv/bin/python streaming_server.py
+WorkingDirectory=/path/to/MediaRelay
+Environment=PATH=/path/to/MediaRelay/venv/bin
+EnvironmentFile=/path/to/MediaRelay/.env
+ExecStart=/path/to/MediaRelay/venv/bin/python streaming_server.py
 Restart=always
 RestartSec=10
 
@@ -192,7 +192,7 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/path/to/video-streaming-server/logs
+ReadWritePaths=/path/to/MediaRelay/logs
 
 [Install]
 WantedBy=multi-user.target
@@ -201,8 +201,8 @@ WantedBy=multi-user.target
 Enable and start the service:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable video-streaming-server
-sudo systemctl start video-streaming-server
+sudo systemctl enable mediarelay
+sudo systemctl start mediarelay
 ```
 
 #### Windows Service
@@ -211,9 +211,9 @@ Use `nssm` (Non-Sucking Service Manager):
 
 ```cmd
 # Download and install nssm
-nssm install VideoStreamingServer "C:\path\to\python.exe" "C:\path\to\streaming_server.py"
-nssm set VideoStreamingServer AppDirectory "C:\path\to\video-streaming-server"
-nssm start VideoStreamingServer
+nssm install MediaRelay "C:\path\to\python.exe" "C:\path\to\streaming_server.py"
+nssm set MediaRelay AppDirectory "C:\path\to\MediaRelay"
+nssm start MediaRelay
 ```
 
 ### 3. Monitoring and Logging
@@ -377,7 +377,7 @@ kill -9 <PID>                 # Linux/macOS
 ```bash
 # Fix file permissions (Linux/macOS)
 chmod +x streaming_server.py
-chown -R user:group /path/to/video-streaming-server
+chown -R user:group /path/to/MediaRelay
 
 # Ensure video directory is accessible
 chmod -R 755 /path/to/videos
@@ -429,8 +429,8 @@ git pull origin main
 pip install -r requirements.txt --upgrade
 
 # Restart service
-sudo systemctl restart video-streaming-server  # Linux
-nssm restart VideoStreamingServer              # Windows
+sudo systemctl restart mediarelay  # Linux
+nssm restart MediaRelay              # Windows
 ```
 
 ### Performance Monitoring

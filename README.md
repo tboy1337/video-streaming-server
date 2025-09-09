@@ -1,4 +1,4 @@
-# Video Streaming Server
+# MediaRelay
 
 A comprehensive, production-ready video streaming server that allows you to securely share your personal video library over the internet. Built with enterprise-grade security, monitoring, and performance features.
 
@@ -48,8 +48,8 @@ A comprehensive, production-ready video streaming server that allows you to secu
 
 ```bash
 # Clone the repository
-git clone https://github.com/tboy1337/video-streaming-server.git
-cd video-streaming-server
+git clone https://github.com/tboy1337/MediaRelay.git
+cd MediaRelay
 
 # Create virtual environment (recommended)
 python -m venv venv
@@ -235,15 +235,15 @@ CMD ["python", "streaming_server.py"]
 **Linux (systemd)**:
 ```ini
 [Unit]
-Description=Video Streaming Server
+Description=MediaRelay
 After=network.target
 
 [Service]  
 Type=simple
-User=video-server
-WorkingDirectory=/opt/video-streaming-server
-EnvironmentFile=/opt/video-streaming-server/.env
-ExecStart=/opt/video-streaming-server/venv/bin/python streaming_server.py
+User=mediarelay
+WorkingDirectory=/opt/MediaRelay
+EnvironmentFile=/opt/MediaRelay/.env
+ExecStart=/opt/MediaRelay/venv/bin/python streaming_server.py
 Restart=always
 
 [Install]

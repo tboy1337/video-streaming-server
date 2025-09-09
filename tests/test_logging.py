@@ -146,6 +146,7 @@ class TestSecurityEventLoggerComprehensive:
 
         # Test handler configuration
         from logging.handlers import RotatingFileHandler
+
         handler = logger.logger.handlers[0]
         assert isinstance(handler, RotatingFileHandler)
         assert handler.maxBytes == test_config.log_max_bytes
@@ -311,6 +312,7 @@ class TestPerformanceLoggerComprehensive:
 
         # Test handler configuration
         from logging.handlers import RotatingFileHandler
+
         handler = logger.logger.handlers[0]
         assert isinstance(handler, RotatingFileHandler)
         assert handler.maxBytes == test_config.log_max_bytes

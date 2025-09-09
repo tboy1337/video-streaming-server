@@ -1,4 +1,4 @@
-# Video Streaming Server - User Manual
+# MediaRelay - User Manual
 
 ## Table of Contents
 
@@ -36,8 +36,8 @@ The Video Streaming Server allows you to share your personal video library over 
 
 1. **Download the Application**
    ```bash
-   git clone https://github.com/tboy1337/video-streaming-server.git
-   cd video-streaming-server
+   git clone https://github.com/tboy1337/MediaRelay.git
+   cd MediaRelay
    ```
 
 2. **Install Dependencies**

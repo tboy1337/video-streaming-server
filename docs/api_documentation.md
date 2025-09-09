@@ -1,4 +1,4 @@
-# Video Streaming Server - API Documentation
+# MediaRelay - API Documentation
 
 ## Overview
 

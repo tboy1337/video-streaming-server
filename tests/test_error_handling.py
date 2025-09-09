@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from config import ServerConfig, _get_default_video_directory
-from streaming_server import VideoStreamingServer
+from streaming_server import MediaRelayServer
 
 
 class TestConfigErrorHandling:
@@ -94,7 +94,7 @@ class TestServerErrorHandling:
         test_config.video_directory = "/nonexistent/directory"
 
         with pytest.raises(ValueError, match="does not exist"):
-            server = VideoStreamingServer(test_config)
+            server = MediaRelayServer(test_config)
             server.run()
 
     def test_server_permission_denied_directory(self, test_config):

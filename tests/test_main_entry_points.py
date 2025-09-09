@@ -19,7 +19,7 @@ class TestStreamingServerMain:
 
     @patch("streaming_server.click.command")
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     def test_main_function_basic_flow(
         self, mock_server_class, mock_load_config, mock_click
     ):
@@ -120,7 +120,7 @@ class TestLoggingMainEntryPoint:
 class TestServerStartupAndShutdown:
     """Test cases for server startup and shutdown procedures"""
 
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("streaming_server.load_config")
     def test_server_startup_sequence(self, mock_load_config, mock_server_class):
         """Test server startup sequence"""
@@ -135,7 +135,7 @@ class TestServerStartupAndShutdown:
         with patch("sys.exit"):
             pass  # Would test full startup sequence
 
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("streaming_server.load_config")
     def test_keyboard_interrupt_handling(self, mock_load_config, mock_server_class):
         """Test KeyboardInterrupt handling during server operation"""
@@ -151,7 +151,7 @@ class TestServerStartupAndShutdown:
             with patch("builtins.print") as mock_print:
                 pass  # Would test interrupt handling
 
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     @patch("streaming_server.load_config")
     def test_configuration_error_handling(self, mock_load_config, mock_server_class):
         """Test configuration error handling"""
@@ -194,7 +194,7 @@ class TestCLIArgumentHandling:
     """Test cases for CLI argument handling"""
 
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     def test_host_override(self, mock_server_class, mock_load_config):
         """Test host command line override"""
         mock_config = MagicMock()
@@ -206,7 +206,7 @@ class TestCLIArgumentHandling:
         assert mock_config.host == "localhost"  # Default
 
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     def test_port_override(self, mock_server_class, mock_load_config):
         """Test port command line override"""
         mock_config = MagicMock()
@@ -217,7 +217,7 @@ class TestCLIArgumentHandling:
         assert mock_config.port == 5000  # Default
 
     @patch("streaming_server.load_config")
-    @patch("streaming_server.VideoStreamingServer")
+    @patch("streaming_server.MediaRelayServer")
     def test_debug_override(self, mock_server_class, mock_load_config):
         """Test debug command line override"""
         mock_config = MagicMock()
@@ -248,7 +248,7 @@ class TestMainFunctionComprehensiveEdgeCases:
         """Test main function with KeyboardInterrupt coverage"""
         from streaming_server import main as streaming_main
 
-        with patch("streaming_server.VideoStreamingServer") as mock_server:
+        with patch("streaming_server.MediaRelayServer") as mock_server:
             mock_server.return_value.run.side_effect = KeyboardInterrupt
             with patch("builtins.print") as mock_print:
                 with patch("sys.exit"):  # Prevent actual exit
@@ -259,7 +259,7 @@ class TestMainFunctionComprehensiveEdgeCases:
         """Test main function with general exception coverage"""
         from streaming_server import main as streaming_main
 
-        with patch("streaming_server.VideoStreamingServer") as mock_server:
+        with patch("streaming_server.MediaRelayServer") as mock_server:
             mock_server.return_value.run.side_effect = RuntimeError("Server error")
             with patch("builtins.print") as mock_print:
                 with patch("sys.exit") as mock_exit:

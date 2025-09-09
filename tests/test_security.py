@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch
 import pytest
 from flask import session
 
-from streaming_server import VideoStreamingServer
+from streaming_server import MediaRelayServer
 
 
 class TestAuthenticationSecurity:

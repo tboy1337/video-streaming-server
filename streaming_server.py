@@ -1,6 +1,6 @@
 ﻿"""
-Enhanced Video Streaming Server
-------------------------------
+MediaRelay
+----------
 Production-ready video streaming server with comprehensive security,
 logging, monitoring, and configuration management.
 
@@ -34,7 +34,7 @@ from logging_config import (PerformanceLogger, SecurityEventLogger,
                             log_system_info, setup_logging)
 
 
-class VideoStreamingServer:
+class MediaRelayServer:
     """Main video streaming server class with comprehensive features"""
 
     def __init__(self, config: ServerConfig):
@@ -267,7 +267,12 @@ class VideoStreamingServer:
 
             # Fall back to HTTP Basic Auth
             auth = request.authorization
-            if not auth or not auth.username or not auth.password or not self.check_auth(auth.username, auth.password):
+            if (
+                not auth
+                or not auth.username
+                or not auth.password
+                or not self.check_auth(auth.username, auth.password)
+            ):
                 return Response(
                     "Authentication Required",
                     401,
@@ -372,7 +377,9 @@ class VideoStreamingServer:
 
         return crumbs
 
-    def _handle_index_request(self, subpath: str) -> Union[str, Tuple[str, int], Response]:
+    def _handle_index_request(
+        self, subpath: str
+    ) -> Union[str, Tuple[str, int], Response]:
         """Handle index page requests with authentication"""
         if not self._check_authentication():
             return Response(
@@ -574,7 +581,12 @@ class VideoStreamingServer:
 
         # Check HTTP Basic Auth
         auth = request.authorization
-        if auth and auth.username and auth.password and self.check_auth(auth.username, auth.password):
+        if (
+            auth
+            and auth.username
+            and auth.password
+            and self.check_auth(auth.username, auth.password)
+        ):
             # Set session on successful auth
             session["authenticated"] = True
             session["username"] = auth.username
@@ -912,7 +924,7 @@ def main(
             config.debug = True
 
         # Create and run server
-        server = VideoStreamingServer(config)
+        server = MediaRelayServer(config)
         server.run()
 
     except ValueError as e:

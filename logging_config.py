@@ -132,7 +132,9 @@ class PerformanceLogger:
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False
 
-    def log_request_duration(self, endpoint: str, duration: float, status_code: int) -> None:
+    def log_request_duration(
+        self, endpoint: str, duration: float, status_code: int
+    ) -> None:
         """Log request duration metrics"""
         metric_data = {
             "type": "request_duration",
@@ -144,7 +146,9 @@ class PerformanceLogger:
 
         self.logger.info(json.dumps(metric_data))
 
-    def log_file_serve_time(self, file_path: str, file_size: int, duration: float) -> None:
+    def log_file_serve_time(
+        self, file_path: str, file_size: int, duration: float
+    ) -> None:
         """Log file serving performance"""
         metric_data = {
             "type": "file_serve",

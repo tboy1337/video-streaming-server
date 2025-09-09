@@ -108,7 +108,7 @@ def test_server_initialization():
     temp_dir = None
     try:
         from config import ServerConfig
-        from streaming_server import VideoStreamingServer
+        from streaming_server import MediaRelayServer
 
         # Create temporary directory manually to have more control over cleanup
         temp_dir = tempfile.mkdtemp()
@@ -120,7 +120,7 @@ def test_server_initialization():
         os.environ["VIDEO_SERVER_RATE_LIMIT"] = "false"  # Disable for testing
 
         config = ServerConfig()
-        server = VideoStreamingServer(config)
+        server = MediaRelayServer(config)
         print("  âœ… Server initialization")
 
         # Test Flask app creation
